@@ -3,8 +3,7 @@
 public class Game
 {
     public Tile[,] tile = new Tile[9,9];
-    StopWatch s = new StopWatch();
-
+    
     //Game's constructor
     public Game()
     {
@@ -17,7 +16,6 @@ public class Game
         }
         GenerateBombs();
         GenerateTileNums();
-        s.Start();
     }
 
     //randomly generates bombs and puts them into an array
@@ -159,13 +157,14 @@ public class Game
         }
     }
 
-    //carries out choice and returns true if game continues or false if it ends
-    public bool SelectedAction(int rowPick, int colPick)
+    //carries out choice and returns 0 if game continues, 1 if it is won, and 2 if it is over
+    public int SelectedAction(int rowPick, int colPick)
     {
+        if (tile[rowPick, colPick].Flagged == true) return 0;
         if (tile[rowPick, colPick].BombHere == true)
         {
-            GameOver();
-            return false;
+            //Game Over
+            return 2;
         }
         else
         {
@@ -181,7 +180,7 @@ public class Game
                     {
                         for (int col = 0; col < 9; col++)
                         {
-                            if (tile[row, col].FieldValue == '0' & CheckHiddenTiles(row, col) == true)
+                            if (tile[row, col].FieldValue == "0" & CheckHiddenTiles(row, col) == true)
                             {
                                 RevealTouching(row, col);
                                 moreZeros = true;
@@ -192,23 +191,23 @@ public class Game
             } //end reveal more on zeroes
         } //end tile revealing
         //check to see if the player has won
-        bool moreHiddenBombs = false;
+        bool moreTilesToReveal = false;
         for (int row = 0; row < 9; row++)
         {
             for (int col = 0; col < 9; col++)
             {
                 if (tile[row, col].BombHere == false & tile[row, col].Hidden == true)
                 {
-                    moreHiddenBombs = true;
+                    moreTilesToReveal = true;
                 }
             }
         }
-        if (moreHiddenBombs == false)
+        if (moreTilesToReveal == false)
         {
-            GameWon();
-            return false;
+            //Game won
+            return 1;
         }
-        else return true;
+        else return 0;
     }
 
     //triggers the reveal method on all tiles touching the specified tile
@@ -228,46 +227,22 @@ public class Game
     public bool CheckHiddenTiles(int row, int col)
     {
         bool anyHidden = false;
-        if (!(row == 0)) if (tile[(row - 1), col].Hidden == true) anyHidden = true;
-        if (!(col == 0)) if (tile[row, (col - 1)].Hidden == true) anyHidden = true;
-        if (!(row == 0) & !(col == 0)) if (tile[(row - 1), (col - 1)].Hidden == true) anyHidden = true;
-        if (!(col == 8)) if (tile[row, (col + 1)].Hidden == true) anyHidden = true;
-        if (!(row == 0) & !(col == 8)) if (tile[(row - 1), (col + 1)].Hidden == true) anyHidden = true;
-        if (!(row == 8)) if (tile[(row + 1), col].Hidden == true) anyHidden = true;
-        if (!(row == 8) & !(col == 0)) if (tile[(row + 1), (col - 1)].Hidden == true) anyHidden = true;
-        if (!(row == 8) & !(col == 8)) if (tile[(row + 1), (col + 1)].Hidden == true) anyHidden = true;
+        if (!(row == 0)) 
+            if (tile[(row - 1), col].Hidden == true & tile[(row - 1), col].Flagged == false) anyHidden = true;
+        if (!(col == 0)) 
+            if (tile[row, (col - 1)].Hidden == true & tile[row, (col - 1)].Flagged == false) anyHidden = true;
+        if (!(row == 0) & !(col == 0)) 
+            if (tile[(row - 1), (col - 1)].Hidden == true & tile[(row - 1), (col - 1)].Flagged == false) anyHidden = true;
+        if (!(col == 8)) 
+            if (tile[row, (col + 1)].Hidden == true & tile[row, (col + 1)].Flagged == false) anyHidden = true;
+        if (!(row == 0) & !(col == 8)) 
+            if (tile[(row - 1), (col + 1)].Hidden == true & tile[(row - 1), (col + 1)].Flagged == false) anyHidden = true;
+        if (!(row == 8)) 
+            if (tile[(row + 1), col].Hidden == true & tile[(row + 1), col].Flagged == false) anyHidden = true;
+        if (!(row == 8) & !(col == 0)) 
+            if (tile[(row + 1), (col - 1)].Hidden == true & tile[(row + 1), (col - 1)].Flagged == false) anyHidden = true;
+        if (!(row == 8) & !(col == 8)) 
+            if (tile[(row + 1), (col + 1)].Hidden == true & tile[(row + 1), (col + 1)].Flagged == false) anyHidden = true;
         return anyHidden;
-    }
-
-    public void GameOver()
-    {
-        for (int row = 0; row < 9; row++)
-        {
-            for (int col = 0; col < 9; col++)
-            {
-                if (tile[row, col].BombHere == true)
-                {
-                    tile[row, col].Reveal();
-                }
-            }
-        }
-        Console.WriteLine("Game Over!");
-    }
-
-    public void GameWon()
-    {
-        s.Stop();
-        for (int row = 0; row < 9; row++)
-        {
-            for (int col = 0; col < 9; col++)
-            {
-                if (tile[row, col].BombHere == true)
-                {
-                    tile[row, col].Reveal();
-                }
-            }
-        }        
-        Console.WriteLine("Congratulations! You win!");
-        Console.WriteLine("You found all the mines in " + Convert.ToInt32(s.GetElapsedTimeSecs()) + " seconds!");
     }
 }

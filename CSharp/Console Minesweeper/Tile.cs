@@ -2,20 +2,26 @@
 
 public class Tile
 {
-    protected char fieldValue = ' ';
+    protected string fieldValue = " ";
     protected int tileNum = 0;
     protected bool bombHere = false;
     protected bool hidden = true;
     protected bool flagged = false;
 
-    public char FieldValue
+    public string FieldValue
     {
         get
         {
-            if (Hidden == true) fieldValue = ' ';
-            if (Hidden == false)
-                if (BombHere == true) fieldValue = 'X';
-                else fieldValue = char.Parse(TileNum.ToString());
+            if (Flagged) fieldValue = ">";
+            else
+            {
+                if (Hidden) fieldValue = " ";
+                else
+                {
+                    if (BombHere == true) fieldValue = "X";
+                    else fieldValue = TileNum.ToString();
+                }
+            }
             return fieldValue;
         }
     }
@@ -62,7 +68,7 @@ public class Tile
 
     public void Reveal()
     {
-        hidden = false;
+        if (!(Flagged)) hidden = false;
     }
 
     public void Hide()
@@ -75,10 +81,16 @@ public class Tile
         TileNum = 0;
         BombHere = false;
         Hide();
+        Unflag();
     }
 
     public void Flag()
     {
-           
+        if (Hidden) flagged = true;
+    }
+
+    public void Unflag()
+    {
+        flagged = false;
     }
 }

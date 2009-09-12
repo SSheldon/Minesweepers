@@ -4,172 +4,190 @@ public class Minesweeper
 {
     public static void Main(string[] args)
     {
-        //initializing array that shows the characters on the tiles
-        char[,] fieldValues = {{' ',' ',' ',' ',' ',' ',' ',' ',' '},
-                               {' ',' ',' ',' ',' ',' ',' ',' ',' '},
-                               {' ',' ',' ',' ',' ',' ',' ',' ',' '},
-                               {' ',' ',' ',' ',' ',' ',' ',' ',' '},
-                               {' ',' ',' ',' ',' ',' ',' ',' ',' '},
-                               {' ',' ',' ',' ',' ',' ',' ',' ',' '},
-                               {' ',' ',' ',' ',' ',' ',' ',' ',' '},
-                               {' ',' ',' ',' ',' ',' ',' ',' ',' '},
-                               {' ',' ',' ',' ',' ',' ',' ',' ',' '}};
-        //make bool array that says if a bomb is at the spot
-        bool[,] bombHere = GenerateField();
-        //calculate tile numbers
-        int[,] tileNums = GenerateTileNums(bombHere);
-        DisplayField(fieldValues);
-        bool stillPlaying = true;
+        Tile[,] tile = {{new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile()},
+                        {new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile()},
+                        {new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile()},
+                        {new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile()},
+                        {new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile()},
+                        {new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile()},
+                        {new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile()},
+                        {new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile()},
+                        {new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile(),new Tile()}};
+        StopWatch s = new StopWatch();
         do
-        {            
-            int[] coordinates = ResponseAction();
-            int rowPick = coordinates[0];
-            int colPick = coordinates[1];
-            //carry out choice
-            if (bombHere[rowPick, colPick] == true)
+        {
+            tile = GenerateField(tile);
+            tile = GenerateTileNums(tile);
+            DisplayField(tile);
+            s.Start();
+            bool stillPlaying = true;
+            do
             {
-                fieldValues[rowPick, colPick] = 'X';
-                stillPlaying = false;
-                for (int row = 0; row < 9; row++)
+                int[] coordinates = ResponseAction();
+                int rowPick = coordinates[0];
+                int colPick = coordinates[1];
+                //carry out choice
+                if (tile[rowPick, colPick].BombHere == true)
                 {
-                    for (int col = 0; col < 9; col++)
-                    {
-                        if (bombHere[row, col] == true)
-                        {
-                            fieldValues[row, col] = 'X';
-                        }
-                    }
-                }
-                DisplayField(fieldValues);
-                Console.WriteLine("Game Over!");
-            }
-            else
-            {
-                stillPlaying = true;
-                RevealTile(rowPick, colPick, tileNums, fieldValues);
-                if (tileNums[rowPick, colPick] == 0)
-                {
-                    //code that reveals surrounding spaces on a 0
-                    fieldValues = RevealTouching(rowPick, colPick, tileNums, fieldValues);
-                    //end revealing code
-                    bool moreZeros;
-                    do
-                    {
-                        moreZeros = false;
-                        for (int row = 0; row < 9; row++)
-                        {
-                            for (int col = 0; col < 9; col++)
-                            {
-                                if (fieldValues[row, col] == '0' & CheckHiddenTiles(row, col, fieldValues) == true)
-                                {
-                                    RevealTouching(row, col, tileNums, fieldValues);
-                                    moreZeros = true;
-                                }
-                            }
-                        }
-                    } while (moreZeros == true);
-                }
-                //check to see if the player has won
-                stillPlaying = false;
-                for (int row = 0; row < 9; row++)
-                {
-                    for (int col = 0; col < 9; col++)
-                    {
-                        if (bombHere[row, col] == false & fieldValues[row,col] == ' ')
-                        {
-                            stillPlaying = true;
-                        }
-                    }
-                }
-                if (stillPlaying == false)
-                {
+                    tile[rowPick, colPick].Reveal();
+                    stillPlaying = false;
                     for (int row = 0; row < 9; row++)
                     {
                         for (int col = 0; col < 9; col++)
                         {
-                            if (bombHere[row, col] == true)
+                            if (tile[row, col].BombHere == true)
                             {
-                                fieldValues[row, col] = '>';
+                                tile[row, col].Reveal();
                             }
                         }
                     }
+                    DisplayField(tile);
+                    Console.WriteLine("Game Over!");
+                    s.Stop();
                 }
-                DisplayField(fieldValues);
-                if (stillPlaying == false) Console.WriteLine("Congratulations! You win!");
+                else
+                {
+                    stillPlaying = true;
+                    tile[rowPick, colPick].Reveal();
+                    if (tile[rowPick, colPick].TileNum == 0)
+                    {
+                        //code that reveals surrounding spaces on a 0
+                        tile = RevealTouching(rowPick, colPick, tile);
+                        //end revealing code
+                        bool moreZeros;
+                        do
+                        {
+                            moreZeros = false;
+                            for (int row = 0; row < 9; row++)
+                            {
+                                for (int col = 0; col < 9; col++)
+                                {
+                                    if (tile[row, col].FieldValue == '0' & CheckHiddenTiles(row, col, tile) == true)
+                                    {
+                                        RevealTouching(row, col, tile);
+                                        moreZeros = true;
+                                    }
+                                }
+                            }
+                        } while (moreZeros == true);
+                    }
+                    //check to see if the player has won
+                    stillPlaying = false;
+                    for (int row = 0; row < 9; row++)
+                    {
+                        for (int col = 0; col < 9; col++)
+                        {
+                            if (tile[row, col].BombHere == false & tile[row, col].Hidden == true)
+                            {
+                                stillPlaying = true;
+                            }
+                        }
+                    }
+                    if (stillPlaying == false)
+                    {
+                        for (int row = 0; row < 9; row++)
+                        {
+                            for (int col = 0; col < 9; col++)
+                            {
+                                if (tile[row, col].BombHere == true)
+                                {
+                                    tile[row, col].Reveal();
+                                }
+                            }
+                        }
+                    }
+                    DisplayField(tile);
+                    if (stillPlaying == false)
+                    {
+                        s.Stop();
+                        Console.WriteLine("Congratulations! You win!");
+                        Console.WriteLine("You found all the mines in " + Convert.ToInt32(s.GetElapsedTimeSecs()) + " seconds!");
+                    }
+                }
+            } while (stillPlaying == true);
+            Console.WriteLine("Thanks for playing!");
+            Console.Write("Play again? (Press any key to continue) ");
+            Console.ReadKey();
+            Console.WriteLine("");
+            for (int row = 0; row < 9; row++)
+            {
+                for (int col = 0; col < 9; col++)
+                {
+                    tile[row, col].Reset();
+                }
             }
-        } while (stillPlaying == true);
-        Console.WriteLine("Thanks for playing!");
-        Console.ReadKey();
+        } while (true);
     }
 
     //displays field on console
-    public static void DisplayField(char[,] fieldValues)
+    public static void DisplayField(Tile[,] tile)
     {
         Console.WriteLine("");
         Console.WriteLine("  1 2 3 4 5 6 7 8 9 \n" +
                           " ┌─┬─┬─┬─┬─┬─┬─┬─┬─┐\n" +
-                          "A│" + fieldValues[0, 0] + "│" + fieldValues[0, 1] + "│" + fieldValues[0, 2] + "│" + fieldValues[0, 3] + "│" + fieldValues[0, 4] + "│" + fieldValues[0, 5] + "│" + fieldValues[0, 6] + "│" + fieldValues[0, 7] + "│" + fieldValues[0, 8] + "│\n" +
+                          "A│" + tile[0, 0].FieldValue + "│" + tile[0, 1].FieldValue + "│" + tile[0, 2].FieldValue + "│" + tile[0, 3].FieldValue + "│" + tile[0, 4].FieldValue + "│" + tile[0, 5].FieldValue + "│" + tile[0, 6].FieldValue + "│" + tile[0, 7].FieldValue + "│" + tile[0, 8].FieldValue + "│A\n" +
                           " ├─┼─┼─┼─┼─┼─┼─┼─┼─┤\n" +
-                          "B│" + fieldValues[1, 0] + "│" + fieldValues[1, 1] + "│" + fieldValues[1, 2] + "│" + fieldValues[1, 3] + "│" + fieldValues[1, 4] + "│" + fieldValues[1, 5] + "│" + fieldValues[1, 6] + "│" + fieldValues[1, 7] + "│" + fieldValues[1, 8] + "│\n" +
+                          "B│" + tile[1, 0].FieldValue + "│" + tile[1, 1].FieldValue + "│" + tile[1, 2].FieldValue + "│" + tile[1, 3].FieldValue + "│" + tile[1, 4].FieldValue + "│" + tile[1, 5].FieldValue + "│" + tile[1, 6].FieldValue + "│" + tile[1, 7].FieldValue + "│" + tile[1, 8].FieldValue + "│B\n" +
                           " ├─┼─┼─┼─┼─┼─┼─┼─┼─┤\n" +
-                          "C│" + fieldValues[2, 0] + "│" + fieldValues[2, 1] + "│" + fieldValues[2, 2] + "│" + fieldValues[2, 3] + "│" + fieldValues[2, 4] + "│" + fieldValues[2, 5] + "│" + fieldValues[2, 6] + "│" + fieldValues[2, 7] + "│" + fieldValues[2, 8] + "│\n" +
+                          "C│" + tile[2, 0].FieldValue + "│" + tile[2, 1].FieldValue + "│" + tile[2, 2].FieldValue + "│" + tile[2, 3].FieldValue + "│" + tile[2, 4].FieldValue + "│" + tile[2, 5].FieldValue + "│" + tile[2, 6].FieldValue + "│" + tile[2, 7].FieldValue + "│" + tile[2, 8].FieldValue + "│C\n" +
                           " ├─┼─┼─┼─┼─┼─┼─┼─┼─┤\n" +
-                          "D│" + fieldValues[3, 0] + "│" + fieldValues[3, 1] + "│" + fieldValues[3, 2] + "│" + fieldValues[3, 3] + "│" + fieldValues[3, 4] + "│" + fieldValues[3, 5] + "│" + fieldValues[3, 6] + "│" + fieldValues[3, 7] + "│" + fieldValues[3, 8] + "│\n" +
+                          "D│" + tile[3, 0].FieldValue + "│" + tile[3, 1].FieldValue + "│" + tile[3, 2].FieldValue + "│" + tile[3, 3].FieldValue + "│" + tile[3, 4].FieldValue + "│" + tile[3, 5].FieldValue + "│" + tile[3, 6].FieldValue + "│" + tile[3, 7].FieldValue + "│" + tile[3, 8].FieldValue + "│D\n" +
                           " ├─┼─┼─┼─┼─┼─┼─┼─┼─┤\n" +
-                          "E│" + fieldValues[4, 0] + "│" + fieldValues[4, 1] + "│" + fieldValues[4, 2] + "│" + fieldValues[4, 3] + "│" + fieldValues[4, 4] + "│" + fieldValues[4, 5] + "│" + fieldValues[4, 6] + "│" + fieldValues[4, 7] + "│" + fieldValues[4, 8] + "│\n" +
+                          "E│" + tile[4, 0].FieldValue + "│" + tile[4, 1].FieldValue + "│" + tile[4, 2].FieldValue + "│" + tile[4, 3].FieldValue + "│" + tile[4, 4].FieldValue + "│" + tile[4, 5].FieldValue + "│" + tile[4, 6].FieldValue + "│" + tile[4, 7].FieldValue + "│" + tile[4, 8].FieldValue + "│E\n" +
                           " ├─┼─┼─┼─┼─┼─┼─┼─┼─┤\n" +
-                          "F│" + fieldValues[5, 0] + "│" + fieldValues[5, 1] + "│" + fieldValues[5, 2] + "│" + fieldValues[5, 3] + "│" + fieldValues[5, 4] + "│" + fieldValues[5, 5] + "│" + fieldValues[5, 6] + "│" + fieldValues[5, 7] + "│" + fieldValues[5, 8] + "│\n" +
+                          "F│" + tile[5, 0].FieldValue + "│" + tile[5, 1].FieldValue + "│" + tile[5, 2].FieldValue + "│" + tile[5, 3].FieldValue + "│" + tile[5, 4].FieldValue + "│" + tile[5, 5].FieldValue + "│" + tile[5, 6].FieldValue + "│" + tile[5, 7].FieldValue + "│" + tile[5, 8].FieldValue + "│F\n" +
                           " ├─┼─┼─┼─┼─┼─┼─┼─┼─┤\n" +
-                          "G│" + fieldValues[6, 0] + "│" + fieldValues[6, 1] + "│" + fieldValues[6, 2] + "│" + fieldValues[6, 3] + "│" + fieldValues[6, 4] + "│" + fieldValues[6, 5] + "│" + fieldValues[6, 6] + "│" + fieldValues[6, 7] + "│" + fieldValues[6, 8] + "│\n" +
+                          "G│" + tile[6, 0].FieldValue + "│" + tile[6, 1].FieldValue + "│" + tile[6, 2].FieldValue + "│" + tile[6, 3].FieldValue + "│" + tile[6, 4].FieldValue + "│" + tile[6, 5].FieldValue + "│" + tile[6, 6].FieldValue + "│" + tile[6, 7].FieldValue + "│" + tile[6, 8].FieldValue + "│G\n" +
                           " ├─┼─┼─┼─┼─┼─┼─┼─┼─┤\n" +
-                          "H│" + fieldValues[7, 0] + "│" + fieldValues[7, 1] + "│" + fieldValues[7, 2] + "│" + fieldValues[7, 3] + "│" + fieldValues[7, 4] + "│" + fieldValues[7, 5] + "│" + fieldValues[7, 6] + "│" + fieldValues[7, 7] + "│" + fieldValues[7, 8] + "│\n" +
+                          "H│" + tile[7, 0].FieldValue + "│" + tile[7, 1].FieldValue + "│" + tile[7, 2].FieldValue + "│" + tile[7, 3].FieldValue + "│" + tile[7, 4].FieldValue + "│" + tile[7, 5].FieldValue + "│" + tile[7, 6].FieldValue + "│" + tile[7, 7].FieldValue + "│" + tile[7, 8].FieldValue + "│H\n" +
                           " ├─┼─┼─┼─┼─┼─┼─┼─┼─┤\n" +
-                          "I│" + fieldValues[8, 0] + "│" + fieldValues[8, 1] + "│" + fieldValues[8, 2] + "│" + fieldValues[8, 3] + "│" + fieldValues[8, 4] + "│" + fieldValues[8, 5] + "│" + fieldValues[8, 6] + "│" + fieldValues[8, 7] + "│" + fieldValues[8, 8] + "│\n" +
-                          " └─┴─┴─┴─┴─┴─┴─┴─┴─┘");
+                          "I│" + tile[8, 0].FieldValue + "│" + tile[8, 1].FieldValue + "│" + tile[8, 2].FieldValue + "│" + tile[8, 3].FieldValue + "│" + tile[8, 4].FieldValue + "│" + tile[8, 5].FieldValue + "│" + tile[8, 6].FieldValue + "│" + tile[8, 7].FieldValue + "│" + tile[8, 8].FieldValue + "│I\n" +
+                          " └─┴─┴─┴─┴─┴─┴─┴─┴─┘\n" +
+                          "  1 2 3 4 5 6 7 8 9 \n");
     }
 
     //randomly generates bombs and puts them into an array
-    public static bool[,] GenerateField()
+    public static Tile[,] GenerateField(Tile[,] tile)
     {
-        int[,] bomb = new int[10,3];
+        int[,] bomb = new int[10, 3];
         Random RandomClass = new Random();
-        bomb[0,0] = RandomClass.Next(1, 82);
+        bomb[0, 0] = RandomClass.Next(1, 82);
         do
         {
-            bomb[1,0] = RandomClass.Next(1, 82);
-        } while (bomb[1,0] == bomb[0,0]);
+            bomb[1, 0] = RandomClass.Next(1, 82);
+        } while (bomb[1, 0] == bomb[0, 0]);
         do
         {
-            bomb[2,0] = RandomClass.Next(1, 82);
-        } while (bomb[2,0] == bomb[0,0] | bomb[2,0] == bomb[1,0]);
+            bomb[2, 0] = RandomClass.Next(1, 82);
+        } while (bomb[2, 0] == bomb[0, 0] | bomb[2, 0] == bomb[1, 0]);
         do
         {
-            bomb[3,0] = RandomClass.Next(1, 82);
-        } while (bomb[3,0] == bomb[0,0] | bomb[3,0] == bomb[1,0] | bomb[3,0] == bomb[2,0]);
+            bomb[3, 0] = RandomClass.Next(1, 82);
+        } while (bomb[3, 0] == bomb[0, 0] | bomb[3, 0] == bomb[1, 0] | bomb[3, 0] == bomb[2, 0]);
         do
         {
-            bomb[4,0] = RandomClass.Next(1, 82);
-        } while (bomb[4,0] == bomb[0,0] | bomb[4,0] == bomb[1,0] | bomb[4,0] == bomb[2,0] | bomb[4,0] == bomb[3,0]);
+            bomb[4, 0] = RandomClass.Next(1, 82);
+        } while (bomb[4, 0] == bomb[0, 0] | bomb[4, 0] == bomb[1, 0] | bomb[4, 0] == bomb[2, 0] | bomb[4, 0] == bomb[3, 0]);
         do
         {
-            bomb[5,0] = RandomClass.Next(1, 82);
-        } while (bomb[5,0] == bomb[0,0] | bomb[5,0] == bomb[1,0] | bomb[5,0] == bomb[2,0] | bomb[5,0] == bomb[3,0] | bomb[5,0] == bomb[4,0]);
+            bomb[5, 0] = RandomClass.Next(1, 82);
+        } while (bomb[5, 0] == bomb[0, 0] | bomb[5, 0] == bomb[1, 0] | bomb[5, 0] == bomb[2, 0] | bomb[5, 0] == bomb[3, 0] | bomb[5, 0] == bomb[4, 0]);
         do
         {
-            bomb[6,0] = RandomClass.Next(1, 82);
-        } while (bomb[6,0] == bomb[0,0] | bomb[6,0] == bomb[1,0] | bomb[6,0] == bomb[2,0] | bomb[6,0] == bomb[3,0] | bomb[6,0] == bomb[4,0] | bomb[6,0] == bomb[5,0]);
+            bomb[6, 0] = RandomClass.Next(1, 82);
+        } while (bomb[6, 0] == bomb[0, 0] | bomb[6, 0] == bomb[1, 0] | bomb[6, 0] == bomb[2, 0] | bomb[6, 0] == bomb[3, 0] | bomb[6, 0] == bomb[4, 0] | bomb[6, 0] == bomb[5, 0]);
         do
         {
-            bomb[7,0] = RandomClass.Next(1, 82);
-        } while (bomb[7,0] == bomb[0,0] | bomb[7,0] == bomb[1,0] | bomb[7,0] == bomb[2,0] | bomb[7,0] == bomb[3,0] | bomb[7,0] == bomb[4,0] | bomb[7,0] == bomb[5,0] | bomb[7,0] == bomb[6,0]);
+            bomb[7, 0] = RandomClass.Next(1, 82);
+        } while (bomb[7, 0] == bomb[0, 0] | bomb[7, 0] == bomb[1, 0] | bomb[7, 0] == bomb[2, 0] | bomb[7, 0] == bomb[3, 0] | bomb[7, 0] == bomb[4, 0] | bomb[7, 0] == bomb[5, 0] | bomb[7, 0] == bomb[6, 0]);
         do
         {
-            bomb[8,0] = RandomClass.Next(1, 82);
-        } while (bomb[8,0] == bomb[0,0] | bomb[8,0] == bomb[1,0] | bomb[8,0] == bomb[2,0] | bomb[8,0] == bomb[3,0] | bomb[8,0] == bomb[4,0] | bomb[8,0] == bomb[5,0] | bomb[8,0] == bomb[6,0] | bomb[8,0] == bomb[7,0]);
+            bomb[8, 0] = RandomClass.Next(1, 82);
+        } while (bomb[8, 0] == bomb[0, 0] | bomb[8, 0] == bomb[1, 0] | bomb[8, 0] == bomb[2, 0] | bomb[8, 0] == bomb[3, 0] | bomb[8, 0] == bomb[4, 0] | bomb[8, 0] == bomb[5, 0] | bomb[8, 0] == bomb[6, 0] | bomb[8, 0] == bomb[7, 0]);
         do
         {
-            bomb[9,0] = RandomClass.Next(1, 82);
-        } while (bomb[9,0] == bomb[0,0] | bomb[9,0] == bomb[1,0] | bomb[9,0] == bomb[2,0] | bomb[9,0] == bomb[3,0] | bomb[9,0] == bomb[4,0] | bomb[9,0] == bomb[5,0] | bomb[9,0] == bomb[6,0] | bomb[9,0] == bomb[7,0] | bomb[9,0] == bomb[8,0]);
+            bomb[9, 0] = RandomClass.Next(1, 82);
+        } while (bomb[9, 0] == bomb[0, 0] | bomb[9, 0] == bomb[1, 0] | bomb[9, 0] == bomb[2, 0] | bomb[9, 0] == bomb[3, 0] | bomb[9, 0] == bomb[4, 0] | bomb[9, 0] == bomb[5, 0] | bomb[9, 0] == bomb[6, 0] | bomb[9, 0] == bomb[7, 0] | bomb[9, 0] == bomb[8, 0]);
 
         for (int counter = 0; counter < 10; counter++)
         {
@@ -185,36 +203,17 @@ public class Minesweeper
             }
         }
 
-        bool[,] bombHere = {{false,false,false,false,false,false,false,false,false},
-                            {false,false,false,false,false,false,false,false,false},
-                            {false,false,false,false,false,false,false,false,false},
-                            {false,false,false,false,false,false,false,false,false},
-                            {false,false,false,false,false,false,false,false,false},
-                            {false,false,false,false,false,false,false,false,false},
-                            {false,false,false,false,false,false,false,false,false},
-                            {false,false,false,false,false,false,false,false,false},
-                            {false,false,false,false,false,false,false,false,false}};
-
         for (int counter = 0; counter < 10; counter++)
         {
-            bombHere[bomb[counter, 1], bomb[counter, 2]] = true;
+            tile[bomb[counter, 1], bomb[counter, 2]].BombHere = true;
         }
 
-        return bombHere;
+        return tile;
     }
 
     //calculates tile numbers
-    public static int[,] GenerateTileNums(bool[,] bombHere)
+    public static Tile[,] GenerateTileNums(Tile[,] tile)
     {
-        int[,] tileNums = {{0,0,0,0,0,0,0,0,0},
-                           {0,0,0,0,0,0,0,0,0},
-                           {0,0,0,0,0,0,0,0,0},
-                           {0,0,0,0,0,0,0,0,0},
-                           {0,0,0,0,0,0,0,0,0},
-                           {0,0,0,0,0,0,0,0,0},
-                           {0,0,0,0,0,0,0,0,0},
-                           {0,0,0,0,0,0,0,0,0},
-                           {0,0,0,0,0,0,0,0,0}};
         int accumulator = 0;
 
         for (int row = 0; row < 9; row++)
@@ -222,7 +221,7 @@ public class Minesweeper
             for (int col = 0; col < 9; col++)
             {
                 accumulator = 0;
-                if (bombHere[row, col] == true)
+                if (tile[row, col].BombHere == true)
                 {
                     accumulator = 9;
                 }
@@ -230,66 +229,66 @@ public class Minesweeper
                 {
                     if (!(row == 0))
                     {
-                        if (bombHere[(row - 1), col] == true)
+                        if (tile[(row - 1), col].BombHere == true)
                         {
                             accumulator++;
                         }
                     }
                     if (!(col == 0))
                     {
-                        if (bombHere[row, (col - 1)] == true)
+                        if (tile[row, (col - 1)].BombHere == true)
                         {
                             accumulator++;
                         }
                     }
                     if (!(row == 0) & !(col == 0))
                     {
-                        if (bombHere[(row - 1), (col - 1)] == true)
+                        if (tile[(row - 1), (col - 1)].BombHere == true)
                         {
                             accumulator++;
                         }
                     }
                     if (!(col == 8))
                     {
-                        if (bombHere[row, (col + 1)] == true)
+                        if (tile[row, (col + 1)].BombHere == true)
                         {
                             accumulator++;
                         }
                     }
                     if (!(row == 0) & !(col == 8))
                     {
-                        if (bombHere[(row - 1), (col + 1)] == true)
+                        if (tile[(row - 1), (col + 1)].BombHere == true)
                         {
                             accumulator++;
                         }
                     }
                     if (!(row == 8))
                     {
-                        if (bombHere[(row + 1), col] == true)
+                        if (tile[(row + 1), col].BombHere == true)
                         {
                             accumulator++;
                         }
                     }
                     if (!(row == 8) & !(col == 0))
                     {
-                        if (bombHere[(row + 1), (col - 1)] == true)
+                        if (tile[(row + 1), (col - 1)].BombHere == true)
                         {
                             accumulator++;
                         }
                     }
                     if (!(row == 8) & !(col == 8))
                     {
-                        if (bombHere[(row + 1), (col + 1)] == true)
+                        if (tile[(row + 1), (col + 1)].BombHere == true)
                         {
                             accumulator++;
                         }
                     }
                 }
-                tileNums[row, col] = accumulator;
+                tile[row, col].TileNum = accumulator;
             }
         }
 
-        return tileNums;
+        return tile;
     }
 
     //coordinates[0] = rowpick, coordinates[1] = colpick
@@ -342,87 +341,32 @@ public class Minesweeper
         return coordinates;
     }
 
-    //edits the field values to reveal a tile's number
-    public static char[,] RevealTile(int rowPick, int colPick, int[,] tileNums, char[,] fieldValues)
+    //triggers the reveal method on all tiles touching the specified tile
+    public static Tile[,] RevealTouching(int rowPick, int colPick, Tile[,] tile)
     {
-        fieldValues[rowPick, colPick] = char.Parse(tileNums[rowPick, colPick].ToString());
-        return fieldValues;
-    }
-
-    //edits the field values to reveal the numbers of all tiles touching the specified tile
-    public static char[,] RevealTouching(int rowPick, int colPick, int[,] tileNums, char[,] fieldValues)
-    {
-        if (!(rowPick == 0))
-        {
-            RevealTile((rowPick - 1), colPick, tileNums,fieldValues);
-        }
-        if (!(colPick == 0))
-        {
-            RevealTile(rowPick, (colPick - 1), tileNums,fieldValues);
-        }
-        if (!(rowPick == 0) & !(colPick == 0))
-        {
-            RevealTile((rowPick - 1), (colPick - 1), tileNums,fieldValues);
-        }
-        if (!(colPick == 8))
-        {
-            RevealTile(rowPick, (colPick + 1), tileNums,fieldValues);
-        }
-        if (!(rowPick == 0) & !(colPick == 8))
-        {
-            RevealTile((rowPick - 1), (colPick + 1), tileNums,fieldValues);
-        }
-        if (!(rowPick == 8))
-        {
-            RevealTile((rowPick + 1), colPick, tileNums,fieldValues);
-        }
-        if (!(rowPick == 8) & !(colPick == 0))
-        {
-            RevealTile((rowPick + 1), (colPick - 1), tileNums,fieldValues);
-        }
-        if (!(rowPick == 8) & !(colPick == 8))
-        {
-            RevealTile((rowPick + 1), (colPick + 1), tileNums, fieldValues);
-        }
-        return fieldValues;
+        if (!(rowPick == 0)) tile[(rowPick - 1), colPick].Reveal();
+        if (!(colPick == 0)) tile[rowPick, (colPick - 1)].Reveal();
+        if (!(rowPick == 0) & !(colPick == 0)) tile[(rowPick - 1), (colPick - 1)].Reveal();
+        if (!(colPick == 8)) tile[rowPick, (colPick + 1)].Reveal();
+        if (!(rowPick == 0) & !(colPick == 8)) tile[(rowPick - 1), (colPick + 1)].Reveal();
+        if (!(rowPick == 8)) tile[(rowPick + 1), colPick].Reveal();
+        if (!(rowPick == 8) & !(colPick == 0)) tile[(rowPick + 1), (colPick - 1)].Reveal();
+        if (!(rowPick == 8) & !(colPick == 8)) tile[(rowPick + 1), (colPick + 1)].Reveal();
+        return tile;
     }
 
     //checkes to see if the specified tile is touching a hidden tile
-    public static bool CheckHiddenTiles(int rowPick, int colPick, char[,] fieldValues)
+    public static bool CheckHiddenTiles(int rowPick, int colPick, Tile[,] tile)
     {
-        bool covered = false;
-        if (!(rowPick == 0))
-        {
-            if (fieldValues[(rowPick - 1), colPick] == ' ') covered = true;
-        }
-        if (!(colPick == 0))
-        {
-            if (fieldValues[rowPick, (colPick - 1)] == ' ') covered = true;
-        }
-        if (!(rowPick == 0) & !(colPick == 0))
-        {
-            if (fieldValues[(rowPick - 1), (colPick - 1)] == ' ') covered = true;
-        }
-        if (!(colPick == 8))
-        {
-            if (fieldValues[rowPick, (colPick + 1)] == ' ') covered = true;
-        }
-        if (!(rowPick == 0) & !(colPick == 8))
-        {
-            if (fieldValues[(rowPick - 1), (colPick + 1)] == ' ') covered = true;
-        }
-        if (!(rowPick == 8))
-        {
-            if (fieldValues[(rowPick + 1), colPick] == ' ') covered = true;
-        }
-        if (!(rowPick == 8) & !(colPick == 0))
-        {
-            if (fieldValues[(rowPick + 1), (colPick - 1)] == ' ') covered = true;
-        }
-        if (!(rowPick == 8) & !(colPick == 8))
-        {
-            if (fieldValues[(rowPick + 1), (colPick + 1)] == ' ') covered = true;
-        }
-        return covered;
+        bool anyHidden = false;
+        if (!(rowPick == 0)) if (tile[(rowPick - 1), colPick].Hidden == true) anyHidden = true;
+        if (!(colPick == 0)) if (tile[rowPick, (colPick - 1)].Hidden == true) anyHidden = true;
+        if (!(rowPick == 0) & !(colPick == 0)) if (tile[(rowPick - 1), (colPick - 1)].Hidden == true) anyHidden = true;
+        if (!(colPick == 8)) if (tile[rowPick, (colPick + 1)].Hidden == true) anyHidden = true;
+        if (!(rowPick == 0) & !(colPick == 8)) if (tile[(rowPick - 1), (colPick + 1)].Hidden == true) anyHidden = true;
+        if (!(rowPick == 8)) if (tile[(rowPick + 1), colPick].Hidden == true) anyHidden = true;
+        if (!(rowPick == 8) & !(colPick == 0)) if (tile[(rowPick + 1), (colPick - 1)].Hidden == true) anyHidden = true;
+        if (!(rowPick == 8) & !(colPick == 8)) if (tile[(rowPick + 1), (colPick + 1)].Hidden == true) anyHidden = true;
+        return anyHidden;
     }
 }

@@ -40,5 +40,7 @@
   -->
   <ItemGroup>
     <Compile Include="Console Minesweeper.cs" />
+    <Compile Include="StopWatch.cs" />
+    <Compile Include="Tile.cs" />
   </ItemGroup>
 </Project>

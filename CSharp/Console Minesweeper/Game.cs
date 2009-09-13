@@ -1,248 +1,234 @@
 ﻿using System;
 
-public class Game
+public class Field
 {
-    public Tile[,] tile = new Tile[9,9];
+    int height, width, mines;
+    public Tile[,] tiles;
     
-    //Game's constructor
-    public Game()
+    public Field(int height, int width, int mines)
     {
-        for (int row = 0; row < 9; row++)
-        {
-            for (int col = 0; col < 9; col++)
-            {
-                tile[row, col] = new Tile();
-            }
-        }
-        GenerateBombs();
-        GenerateTileNums();
+        this.height = height;
+        this.width = width;
+        this.mines = mines;
+        tiles = new Tile[height, width];
+        GenerateMines();
+        AssignTileNumbers();
     }
 
-    //randomly generates bombs and puts them into an array
-    public void GenerateBombs()
+    //randomly generates mines
+    void GenerateMines()
     {
-        int[,] bomb = new int[10, 3];
-        Random RandomClass = new Random();
-        bomb[0, 0] = RandomClass.Next(1, 82);
-        do
+        int[] randomNumbers = new int[mines];
+        Random rand = new Random();
+        for (int counter = 0; counter < mines; counter++)
         {
-            bomb[1, 0] = RandomClass.Next(1, 82);
-        } while (bomb[1, 0] == bomb[0, 0]);
-        do
-        {
-            bomb[2, 0] = RandomClass.Next(1, 82);
-        } while (bomb[2, 0] == bomb[0, 0] | bomb[2, 0] == bomb[1, 0]);
-        do
-        {
-            bomb[3, 0] = RandomClass.Next(1, 82);
-        } while (bomb[3, 0] == bomb[0, 0] | bomb[3, 0] == bomb[1, 0] | bomb[3, 0] == bomb[2, 0]);
-        do
-        {
-            bomb[4, 0] = RandomClass.Next(1, 82);
-        } while (bomb[4, 0] == bomb[0, 0] | bomb[4, 0] == bomb[1, 0] | bomb[4, 0] == bomb[2, 0] | bomb[4, 0] == bomb[3, 0]);
-        do
-        {
-            bomb[5, 0] = RandomClass.Next(1, 82);
-        } while (bomb[5, 0] == bomb[0, 0] | bomb[5, 0] == bomb[1, 0] | bomb[5, 0] == bomb[2, 0] | bomb[5, 0] == bomb[3, 0] | bomb[5, 0] == bomb[4, 0]);
-        do
-        {
-            bomb[6, 0] = RandomClass.Next(1, 82);
-        } while (bomb[6, 0] == bomb[0, 0] | bomb[6, 0] == bomb[1, 0] | bomb[6, 0] == bomb[2, 0] | bomb[6, 0] == bomb[3, 0] | bomb[6, 0] == bomb[4, 0] | bomb[6, 0] == bomb[5, 0]);
-        do
-        {
-            bomb[7, 0] = RandomClass.Next(1, 82);
-        } while (bomb[7, 0] == bomb[0, 0] | bomb[7, 0] == bomb[1, 0] | bomb[7, 0] == bomb[2, 0] | bomb[7, 0] == bomb[3, 0] | bomb[7, 0] == bomb[4, 0] | bomb[7, 0] == bomb[5, 0] | bomb[7, 0] == bomb[6, 0]);
-        do
-        {
-            bomb[8, 0] = RandomClass.Next(1, 82);
-        } while (bomb[8, 0] == bomb[0, 0] | bomb[8, 0] == bomb[1, 0] | bomb[8, 0] == bomb[2, 0] | bomb[8, 0] == bomb[3, 0] | bomb[8, 0] == bomb[4, 0] | bomb[8, 0] == bomb[5, 0] | bomb[8, 0] == bomb[6, 0] | bomb[8, 0] == bomb[7, 0]);
-        do
-        {
-            bomb[9, 0] = RandomClass.Next(1, 82);
-        } while (bomb[9, 0] == bomb[0, 0] | bomb[9, 0] == bomb[1, 0] | bomb[9, 0] == bomb[2, 0] | bomb[9, 0] == bomb[3, 0] | bomb[9, 0] == bomb[4, 0] | bomb[9, 0] == bomb[5, 0] | bomb[9, 0] == bomb[6, 0] | bomb[9, 0] == bomb[7, 0] | bomb[9, 0] == bomb[8, 0]);
-
-        for (int counter = 0; counter < 10; counter++)
-        {
-            if ((bomb[counter, 0] % 9) == 0)
+            bool alreadyContained = false;
+            do
             {
-                bomb[counter, 1] = ((bomb[counter, 0] - (bomb[counter, 0] % 9)) / 9) - 1;
-                bomb[counter, 2] = 8;
-            }
-            else
-            {
-                bomb[counter, 1] = (bomb[counter, 0] - (bomb[counter, 0] % 9)) / 9;
-                bomb[counter, 2] = (bomb[counter, 0] % 9) - 1;
-            }
+                alreadyContained = false;
+                int randomNumber = rand.Next(0, height * width - 1);
+                for (int counter2 = 0; counter2 < counter; counter2++)
+                {
+                    if (randomNumbers[counter2] == randomNumber) alreadyContained = true;
+                }
+                if (!alreadyContained) randomNumbers[counter] = randomNumber;
+            } while (alreadyContained);
         }
-
-        for (int counter = 0; counter < 10; counter++)
+        for (int counter = 0; counter < mines; counter++)
         {
-            tile[bomb[counter, 1], bomb[counter, 2]].BombHere = true;
+            tiles[randomNumbers[counter] / width, randomNumbers[counter] % width].Mined = true;
         }
     }
 
     //calculates tile numbers
-    public void GenerateTileNums()
+    void AssignTileNumbers()
     {
-        for (int row = 0; row < 9; row++)
+        for (int row = 0; row < height; row++)
         {
-            for (int col = 0; col < 9; col++)
+            for (int col = 0; col < width; col++)
             {
-                int accumulator = 0;
-                if (tile[row,col].BombHere == true)
-                {
-                    accumulator = 9;
-                }
-                else
-                {
-                    if (!(row == 0))
-                    {
-                        if (tile[(row - 1), col].BombHere == true)
-                        {
-                            accumulator++;
-                        }
-                    }
-                    if (!(col == 0))
-                    {
-                        if (tile[row, (col - 1)].BombHere == true)
-                        {
-                            accumulator++;
-                        }
-                    }
-                    if (!(row == 0) & !(col == 0))
-                    {
-                        if (tile[(row - 1), (col - 1)].BombHere == true)
-                        {
-                            accumulator++;
-                        }
-                    }
-                    if (!(col == 8))
-                    {
-                        if (tile[row, (col + 1)].BombHere == true)
-                        {
-                            accumulator++;
-                        }
-                    }
-                    if (!(row == 0) & !(col == 8))
-                    {
-                        if (tile[(row - 1), (col + 1)].BombHere == true)
-                        {
-                            accumulator++;
-                        }
-                    }
-                    if (!(row == 8))
-                    {
-                        if (tile[(row + 1), col].BombHere == true)
-                        {
-                            accumulator++;
-                        }
-                    }
-                    if (!(row == 8) & !(col == 0))
-                    {
-                        if (tile[(row + 1), (col - 1)].BombHere == true)
-                        {
-                            accumulator++;
-                        }
-                    }
-                    if (!(row == 8) & !(col == 8))
-                    {
-                        if (tile[(row + 1), (col + 1)].BombHere == true)
-                        {
-                            accumulator++;
-                        }
-                    }
-                }
-                tile[row, col].TileNum = accumulator;
+                tiles[row, col].Number = TileNumber(row, col);
             }
         }
     }
 
-    //carries out choice and returns 0 if game continues, 1 if it is won, and 2 if it is over
-    public int SelectedAction(int rowPick, int colPick)
+    int TileNumber(int row, int col)
     {
-        if (tile[rowPick, colPick].Flagged == true) return 0;
-        if (tile[rowPick, colPick].BombHere == true)
+        int accumulator = 0;
+        if (tiles[row, col].Mined == true)
         {
-            //Game Over
-            return 2;
+            accumulator = 9;
         }
         else
         {
-            tile[rowPick, colPick].Reveal();
-            if (tile[rowPick, colPick].TileNum == 0)
+            if (row != 0)
             {
-                RevealTouching(rowPick, colPick);
-                bool moreZeros;
-                do
+                if (tiles[(row - 1), col].Mined)
                 {
-                    moreZeros = false;
-                    for (int row = 0; row < 9; row++)
-                    {
-                        for (int col = 0; col < 9; col++)
-                        {
-                            if (tile[row, col].FieldValue == "0" & CheckHiddenTiles(row, col) == true)
-                            {
-                                RevealTouching(row, col);
-                                moreZeros = true;
-                            }
-                        }
-                    }
-                } while (moreZeros == true);
-            } //end reveal more on zeroes
-        } //end tile revealing
-        //check to see if the player has won
-        bool moreTilesToReveal = false;
-        for (int row = 0; row < 9; row++)
-        {
-            for (int col = 0; col < 9; col++)
+                    accumulator++;
+                }
+            }
+            if (col != 0)
             {
-                if (tile[row, col].BombHere == false & tile[row, col].Hidden == true)
+                if (tiles[row, (col - 1)].Mined)
                 {
-                    moreTilesToReveal = true;
+                    accumulator++;
+                }
+            }
+            if (row != 0 && col != 0)
+            {
+                if (tiles[(row - 1), (col - 1)].Mined)
+                {
+                    accumulator++;
+                }
+            }
+            if (col != width - 1)
+            {
+                if (tiles[row, (col + 1)].Mined)
+                {
+                    accumulator++;
+                }
+            }
+            if (row != 0 && col != width - 1)
+            {
+                if (tiles[(row - 1), (col + 1)].Mined)
+                {
+                    accumulator++;
+                }
+            }
+            if (row != height - 1)
+            {
+                if (tiles[(row + 1), col].Mined)
+                {
+                    accumulator++;
+                }
+            }
+            if (row != height - 1 && col != 0)
+            {
+                if (tiles[(row + 1), (col - 1)].Mined)
+                {
+                    accumulator++;
+                }
+            }
+            if (row != height - 1 && col != width - 1)
+            {
+                if (tiles[(row + 1), (col + 1)].Mined)
+                {
+                    accumulator++;
                 }
             }
         }
-        if (moreTilesToReveal == false)
-        {
-            //Game won
-            return 1;
-        }
-        else return 0;
+        return accumulator;
     }
 
-    //triggers the reveal method on all tiles touching the specified tile
+    /// <summary>
+    /// Reveals all tiles touching the specified tile.
+    /// </summary>
     public void RevealTouching(int row, int col)
     {
-        if (!(row == 0)) tile[(row - 1), col].Reveal();
-        if (!(col == 0)) tile[row, (col - 1)].Reveal();
-        if (!(row == 0) & !(col == 0)) tile[(row - 1), (col - 1)].Reveal();
-        if (!(col == 8)) tile[row, (col + 1)].Reveal();
-        if (!(row == 0) & !(col == 8)) tile[(row - 1), (col + 1)].Reveal();
-        if (!(row == 8)) tile[(row + 1), col].Reveal();
-        if (!(row == 8) & !(col == 0)) tile[(row + 1), (col - 1)].Reveal();
-        if (!(row == 8) & !(col == 8)) tile[(row + 1), (col + 1)].Reveal();
+        if (row != 0) tiles[(row - 1), col].Reveal();
+        if (col != 0) tiles[row, (col - 1)].Reveal();
+        if (row != 0 && col != 0) tiles[(row - 1), (col - 1)].Reveal();
+        if (col != width - 1) tiles[row, (col + 1)].Reveal();
+        if (row != 0 && col != width - 1) tiles[(row - 1), (col + 1)].Reveal();
+        if (row != height - 1) tiles[(row + 1), col].Reveal();
+        if (row != height - 1 && col != 0) tiles[(row + 1), (col - 1)].Reveal();
+        if (row != height - 1 && col != width - 1) tiles[(row + 1), (col + 1)].Reveal();
     }
 
-    //checkes to see if the specified tile is touching a hidden tile
-    public bool CheckHiddenTiles(int row, int col)
+    /// <summary>
+    /// Returns a value indicating whether the specified tile is touching a hidden tile.
+    /// </summary>
+    public bool TouchingHiddenTile(int row, int col)
     {
         bool anyHidden = false;
         if (!(row == 0)) 
-            if (tile[(row - 1), col].Hidden == true & tile[(row - 1), col].Flagged == false) anyHidden = true;
+            if (tiles[(row - 1), col].Hidden == true & tiles[(row - 1), col].Flagged == false) anyHidden = true;
         if (!(col == 0)) 
-            if (tile[row, (col - 1)].Hidden == true & tile[row, (col - 1)].Flagged == false) anyHidden = true;
+            if (tiles[row, (col - 1)].Hidden == true & tiles[row, (col - 1)].Flagged == false) anyHidden = true;
         if (!(row == 0) & !(col == 0)) 
-            if (tile[(row - 1), (col - 1)].Hidden == true & tile[(row - 1), (col - 1)].Flagged == false) anyHidden = true;
-        if (!(col == 8)) 
-            if (tile[row, (col + 1)].Hidden == true & tile[row, (col + 1)].Flagged == false) anyHidden = true;
-        if (!(row == 0) & !(col == 8)) 
-            if (tile[(row - 1), (col + 1)].Hidden == true & tile[(row - 1), (col + 1)].Flagged == false) anyHidden = true;
-        if (!(row == 8)) 
-            if (tile[(row + 1), col].Hidden == true & tile[(row + 1), col].Flagged == false) anyHidden = true;
-        if (!(row == 8) & !(col == 0)) 
-            if (tile[(row + 1), (col - 1)].Hidden == true & tile[(row + 1), (col - 1)].Flagged == false) anyHidden = true;
-        if (!(row == 8) & !(col == 8)) 
-            if (tile[(row + 1), (col + 1)].Hidden == true & tile[(row + 1), (col + 1)].Flagged == false) anyHidden = true;
+            if (tiles[(row - 1), (col - 1)].Hidden == true & tiles[(row - 1), (col - 1)].Flagged == false) anyHidden = true;
+        if (!(col == width - 1)) 
+            if (tiles[row, (col + 1)].Hidden == true & tiles[row, (col + 1)].Flagged == false) anyHidden = true;
+        if (!(row == 0) & !(col == width - 1)) 
+            if (tiles[(row - 1), (col + 1)].Hidden == true & tiles[(row - 1), (col + 1)].Flagged == false) anyHidden = true;
+        if (!(row == height - 1)) 
+            if (tiles[(row + 1), col].Hidden == true & tiles[(row + 1), col].Flagged == false) anyHidden = true;
+        if (!(row == height - 1) & !(col == 0)) 
+            if (tiles[(row + 1), (col - 1)].Hidden == true & tiles[(row + 1), (col - 1)].Flagged == false) anyHidden = true;
+        if (!(row == height - 1) & !(col == width - 1)) 
+            if (tiles[(row + 1), (col + 1)].Hidden == true & tiles[(row + 1), (col + 1)].Flagged == false) anyHidden = true;
         return anyHidden;
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether all the unmined tiles are revealed.
+    /// </summary>
+    public bool AllUnminedRevealed
+    {
+        get
+        {
+            bool moreTilesToReveal = false;
+            for (int row = 0; row < height; row++)
+            {
+                for (int col = 0; col < width; col++)
+                {
+                    if (tiles[row, col].Mined == false & tiles[row, col].Hidden == true) moreTilesToReveal = true;
+                }
+            }
+            return !moreTilesToReveal;
+        }
+    }
+
+    /// <summary>
+    /// Reveals the specified tile and returns a value indicating if it was mined.
+    /// </summary>
+    public bool Click(int row, int col)
+    {
+        tiles[row, col].Reveal();
+        bool checkAgain;
+        //check to see if there are zero tiles touching hidden tiles
+        do
+        {
+            checkAgain = false;
+            for (int rowCounter = 0; rowCounter < height; rowCounter++)
+            {
+                for (int colCounter = 0; colCounter < width; colCounter++)
+                {
+                    if (!tiles[rowCounter, colCounter].Hidden && !tiles[rowCounter, colCounter].Mined &&
+                        tiles[rowCounter, colCounter].Number == 0 && TouchingHiddenTile(rowCounter, colCounter))
+                    {
+                        RevealTouching(rowCounter, colCounter);
+                        checkAgain = true;
+                    }
+                }
+            }
+        } while (checkAgain == true);
+        if (tiles[row, col].Mined && !tiles[row, col].Flagged) return true;
+        else return false;
+    }
+
+    /// <summary>
+    /// If the specified tile is mined, the mine will be moved to a different tile.
+    /// </summary>
+    public void MoveMine(int row, int col)
+    {
+        if (tiles[row, col].Mined)
+        {
+            for (int rowCounter = 0; rowCounter < height; rowCounter++)
+            {
+                for (int colCounter = 0; colCounter < width; colCounter++)
+                {
+                    if (!tiles[rowCounter, colCounter].Mined)
+                    {
+                        tiles[rowCounter, colCounter].Mined = true;
+                        tiles[row, col].Mined = false;
+                        break;
+                    }
+                }
+                if (!tiles[row, col].Mined) break;
+            }
+            AssignTileNumbers();
+        }
     }
 }

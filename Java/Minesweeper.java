@@ -34,7 +34,7 @@ public class Minesweeper
         } while (true);
     }
 
-    public void DisplayField()
+    private void DisplayField()
     {
         System.out.println();
         System.out.print("  ");
@@ -56,7 +56,7 @@ public class Minesweeper
         }
     }
     
-    public void HandleInput()
+    private void HandleInput()
     {
         Input input = GetInput();
         if (!input.flagging) //player is not flagging a tile

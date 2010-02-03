@@ -1,8 +1,11 @@
-public class Field
+import java.util.Vector;
+import java.util.Iterator;
+
+public class Field implements Iterable<Tile>
 {
     private int height, width, mines;
     public Tile[][] tiles;
-    private SurroundingTileIterator sti;
+    private Vector<Tile> surrounding;
     
     public Field(int height, int width, int mines)
     {
@@ -13,7 +16,7 @@ public class Field
         for (int row = 0; row < height; row++)
             for (int col = 0; col < width; col++)
                 tiles[row][col] = new Tile();
-        sti = new SurroundingTileIterator();
+        surrounding = new Vector<Tile>(8);
         GenerateMines();
         AssignTileNumbers();
     }
@@ -55,29 +58,28 @@ public class Field
     private int TileNumber(int row, int col)
     {
         int accumulator = 0;
-        for (Tile t = sti.First(row, col); sti.HasCurrent(); t = sti.Next())
+        for (Tile t : Surrounding(row, col))
             if (t.Mined) accumulator++;
         return accumulator;
     }
 
     public void RevealTouching(int row, int col)
     {
-        for (Tile t = sti.First(row, col); sti.HasCurrent(); t = sti.Next())
+        for (Tile t : Surrounding(row, col))
             t.Reveal();
     }
 
     public boolean TouchingHiddenTile(int row, int col)
     {
-        for (Tile t = sti.First(row, col); sti.HasCurrent(); t = sti.Next())
+        for (Tile t : Surrounding(row, col))
             if (t.Hidden() && !t.Flagged()) return true;
         return false;
     }
 
     public boolean AllUnminedRevealed()
     {
-        for (int row = 0; row < height; row++)
-            for (int col = 0; col < width; col++)
-                if (!tiles[row][col].Mined && tiles[row][col].Hidden()) return false;
+        for (Tile tile : this)
+            if (!tile.Mined && tile.Hidden()) return false;
         return true;
     }
 
@@ -124,89 +126,54 @@ public class Field
         AssignTileNumbers();
     }
     
-    private class SurroundingTileIterator
+    private Vector<Tile> Surrounding(int row, int col)
     {
-        private int row, col;
-        private int position;
+        surrounding.clear();
+        if (row != 0 && col != 0)
+            surrounding.add(tiles[row - 1][col - 1]);
+        if (row != 0)
+            surrounding.add(tiles[row - 1][col]);
+        if (row != 0 && col != width - 1)
+            surrounding.add(tiles[row - 1][col + 1]);
+        if (col != 0)
+            surrounding.add(tiles[row][col - 1]);
+        if (col != width - 1)
+            surrounding.add(tiles[row][col + 1]);
+        if (row != height - 1 && col != 0)
+            surrounding.add(tiles[row + 1][col - 1]);
+        if (row != height - 1)
+            surrounding.add(tiles[row + 1][col]);
+        if (row != height - 1 && col != width - 1)
+            surrounding.add(tiles[row + 1][col + 1]);
+        return surrounding;
+    }
+    
+    public Iterator<Tile> iterator()
+    {
+        return new FieldIterator(this);
+    }
+    
+    public class FieldIterator implements Iterator<Tile>
+    {
+        int position = -1;
+        Field field;
         
-        public void Set(int row, int col)
+        public FieldIterator(Field field)
         {
-            this.row = row;
-            this.col = col;
-            position = -1;
-            Advance();
+            this.field = field;
         }
         
-        public Tile First(int row, int col)
+        public boolean hasNext()
         {
-            Set(row, col);
-            return Current();
+            return position < field.height * field.width;
         }
         
-        public Tile Next()
+        public Tile next()
         {
-            Advance();
-            return Current();
+            position++;
+            return field.tiles[position / field.width][position % field.width];
         }
         
-        public boolean HasCurrent()
-        {
-            return PositionExists(position);
-        }
-        
-        public void Advance()
-        {
-            for (position++; !PositionExists(position) && position < 8; position++);
-        }
-        
-        public Tile Current()
-        {
-            switch (position)
-            {
-                case 0:
-                    return tiles[row - 1][col - 1];
-                case 1:
-                    return tiles[row - 1][col];
-                case 2:
-                    return tiles[row - 1][col + 1];
-                case 3:
-                    return tiles[row][col - 1];
-                case 4:
-                    return tiles[row][col + 1];
-                case 5:
-                    return tiles[row + 1][col - 1];
-                case 6:
-                    return tiles[row + 1][col];
-                case 7:
-                    return tiles[row + 1][col + 1];
-                default:
-                    return null;
-            }
-        }
-        
-        private boolean PositionExists(int position)
-        {
-            switch (position)
-            {
-                case 0:
-                    return row != 0 && col != 0;
-                case 1:
-                    return row != 0;
-                case 2:
-                    return row != 0 && col != width - 1;
-                case 3:
-                    return col != 0;
-                case 4:
-                    return col != width - 1;
-                case 5:
-                    return row != height - 1 && col != 0;
-                case 6:
-                    return row != height - 1;
-                case 7:
-                    return row != height - 1 && col != width - 1;
-                default:
-                    return false;
-            }
-        }
+        public void remove() { }
     }
 }

@@ -8,7 +8,6 @@ public class Minesweeper
     }
     
     private Field field;
-    private boolean stillPlaying;
     //StopWatch s;
     private Scanner scanner;
     private final int HEIGHT = 9, WIDTH = 9, MINES = 10;
@@ -22,12 +21,8 @@ public class Minesweeper
         {
             field = new Field(HEIGHT, WIDTH, MINES);
             //s.Start();
-            stillPlaying = true;
             DisplayField();
-            do
-            {
-                HandleInput();
-            } while (stillPlaying == true);
+            while (HandleInput());
             System.out.println("Thanks for playing!");
             System.out.print("Play again? (Press enter to continue) ");
             scanner.nextLine();
@@ -56,39 +51,35 @@ public class Minesweeper
         }
     }
     
-    private void HandleInput()
+    private boolean HandleInput()
     {
         Input input = GetInput();
         if (!input.flagging) //player is not flagging a tile
         {
             if (field.Click(input.row, input.col))
             {
-                for (int row = 0; row < HEIGHT; row++)
-                    for (int col = 0; col < WIDTH; col++)
-                        if (field.tiles[row][col].Mined == true)
-                            field.tiles[row][col].Reveal();
+                for (Tile tile : field)
+                    if (tile.Mined) tile.Reveal();
                 DisplayField();
                 System.out.println("Game Over!");
-                stillPlaying = false;
+                return false;
             }
             else
             {
                 if (field.AllUnminedRevealed())
                 {
                     //s.Stop();
-                    for (int row = 0; row < HEIGHT; row++)
-                        for (int col = 0; col < WIDTH; col++)
-                            if (field.tiles[row][col].Mined == true)
-                                field.tiles[row][col].Reveal();
+                    for (Tile tile : field)
+                        if (tile.Mined) tile.Reveal();
                     DisplayField();
                     System.out.println("Congratulations! You win!");
                     //Console.WriteLine("You found all the mines in " + Convert.ToInt32(s.GetElapsedTimeSecs()) + " seconds!");
-                    stillPlaying = false;
+                    return false;
                 }
                 else
                 {
-                    stillPlaying = true;
                     DisplayField();
+                    return true;
                 }
             }
         }
@@ -98,7 +89,7 @@ public class Minesweeper
                 field.tiles[input.row][input.col].Flag();
             else field.tiles[input.row][input.col].Unflag();
             DisplayField();
-            stillPlaying = true;
+            return true;
         }
     }
     

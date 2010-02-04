@@ -91,14 +91,14 @@ public class Field implements Iterable<Tile>
         do
         {
             checkAgain = false;
-            for (int rowCounter = 0; rowCounter < height; rowCounter++)
+            for (int r = 0; r < height; r++)
             {
-                for (int colCounter = 0; colCounter < width; colCounter++)
+                for (int c = 0; c < width; c++)
                 {
-                    if (!tiles[rowCounter][colCounter].Hidden() && !tiles[rowCounter][colCounter].Mined &&
-                        tiles[rowCounter][colCounter].Number == 0 && TouchingHiddenTile(rowCounter, colCounter))
+                    if (!tiles[r][c].Hidden() && !tiles[r][c].Mined &&
+                        tiles[r][c].Number == 0 && TouchingHiddenTile(r, c))
                     {
-                        RevealTouching(rowCounter, colCounter);
+                        RevealTouching(r, c);
                         checkAgain = true;
                     }
                 }
@@ -110,18 +110,14 @@ public class Field implements Iterable<Tile>
     public void MoveMine(int row, int col)
     {
         if (!tiles[row][col].Mined) return;
-        for (int rowCounter = 0; rowCounter < height; rowCounter++)
+        for (Tile tile : this)
         {
-            for (int colCounter = 0; colCounter < width; colCounter++)
+            if (!tile.Mined)
             {
-                if (!tiles[rowCounter][colCounter].Mined)
-                {
-                    tiles[rowCounter][colCounter].Mined = true;
-                    tiles[row][col].Mined = false;
-                    break;
-                }
+                tile.Mined = true;
+                tiles[row][col].Mined = false;
+                break;
             }
-            if (!tiles[row][col].Mined) break;
         }
         AssignTileNumbers();
     }
@@ -165,7 +161,7 @@ public class Field implements Iterable<Tile>
         
         public boolean hasNext()
         {
-            return position < field.height * field.width;
+            return position + 1 < field.height * field.width;
         }
         
         public Tile next()

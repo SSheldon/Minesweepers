@@ -5,15 +5,15 @@ using namespace std;
 
 int main()
 {
-	Field field;
+	Field field(9, 9, 10);
 	for (int i = 0; i < 9; i++)
 	{
 		for (int j = 0; j < 9; j++)
 		{
-			if (field.tiles[i][j].mined)
+			if (field.Get(i, j).mined)
 				cout << "X ";
 			else
-				cout << field.tiles[i][j].number << " ";
+				cout << field.Get(i, j).number << " ";
 		}
 		cout << endl;
 	}

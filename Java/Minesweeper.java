@@ -85,9 +85,9 @@ public class Minesweeper
         }
         else //player is flagging a tile
         {
-            if (!field.tiles[input.row][input.col].Flagged())
-                field.tiles[input.row][input.col].Flag();
-            else field.tiles[input.row][input.col].Unflag();
+            if (!field.Get(input.row, input.col).Flagged())
+                field.Get(input.row, input.col).Flag();
+            else field.Get(input.row, input.col).Unflag();
             DisplayField();
             return true;
         }
@@ -165,7 +165,7 @@ public class Minesweeper
 
     private String FieldValue(int row, int col)
     {
-        return FieldValue(field.tiles[row][col]);
+        return FieldValue(field.Get(row, col));
     }
     
     private static String FieldValue(Tile tile)

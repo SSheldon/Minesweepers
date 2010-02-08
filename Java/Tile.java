@@ -1,9 +1,15 @@
 public class Tile
 {
-    public int Number;
-    public boolean Mined;
+    public final int Number;
+    public final boolean Mined;
     private boolean revealed;
     private boolean flagged;
+    
+    public Tile(boolean mined, int number)
+    {
+        Mined = mined;
+        Number = number;
+    }
 
     public boolean Hidden()
     {

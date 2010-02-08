@@ -3,8 +3,8 @@ import java.util.Iterator;
 
 public class Field implements Iterable<Tile>
 {
-    private int height, width, mines;
-    public Tile[][] tiles;
+    private final int height, width, mines;
+    private Tile[][] tiles;
     private Vector<Tile> surrounding;
     
     public Field(int height, int width, int mines)
@@ -13,54 +13,50 @@ public class Field implements Iterable<Tile>
         this.width = width;
         this.mines = mines;
         tiles = new Tile[height][width];
-        for (int row = 0; row < height; row++)
-            for (int col = 0; col < width; col++)
-                tiles[row][col] = new Tile();
-        surrounding = new Vector<Tile>(8);
-        GenerateMines();
-        AssignTileNumbers();
+        InitializeTiles();
+        surrounding = new Vector<Tile>();
     }
+    
+    public Tile Get(int row, int col) { return tiles[row][col]; }
 
-    private void GenerateMines()
+    private void InitializeTiles()
     {
-        int[] randomNumbers = new int[mines];
+        boolean[][] mined = new boolean[height][width];
         for (int i = 0; i < mines; i++)
         {
-            boolean alreadyContained = false;
+            boolean alreadyContained;
             do
             {
                 alreadyContained = false;
-                int randomNumber = (int)(Math.random() * (height * width));
-                for (int j = 0; j < i; j++)
-                {
-                    if (randomNumbers[j] == randomNumber)
-                    {
-                        alreadyContained = true;
-                        break;
-                    }
-                }
-                if (!alreadyContained) randomNumbers[i] = randomNumber;
+                int rand = (int)(Math.random() * (height * width));
+                if (mined[rand / width][rand % width]) alreadyContained = true;
+                else mined[rand / width][rand % width] = true;
             } while (alreadyContained);
-        }
-        for (int i : randomNumbers)
-        {
-            tiles[i / width][i % width].Mined = true;
-        }
-    }
-
-    private void AssignTileNumbers()
-    {
+        }        
         for (int row = 0; row < height; row++)
+        {
             for (int col = 0; col < width; col++)
-                tiles[row][col].Number = TileNumber(row, col);
-    }
-
-    private int TileNumber(int row, int col)
-    {
-        int accumulator = 0;
-        for (Tile t : Surrounding(row, col))
-            if (t.Mined) accumulator++;
-        return accumulator;
+            {
+                int accumulator = 0;
+                if (row != 0 && mined[row - 1][col])
+                    accumulator++;
+                if (col != 0 && mined[row][col - 1])
+                    accumulator++;
+                if (row != 0 && col != 0 && mined[row - 1][col - 1])
+                    accumulator++;
+                if (col != width - 1 && mined[row][col + 1])
+                    accumulator++;
+                if (row != 0 && col != width - 1 && mined[row - 1][col + 1])
+                    accumulator++;
+                if (row != height - 1 && mined[row + 1][col])
+                    accumulator++;
+                if (row != height - 1 && col != 0 && mined[row + 1][col - 1])
+                    accumulator++;
+                if (row != height - 1 && col != width - 1 && mined[row + 1][col + 1])
+                    accumulator++;
+                tiles[row][col] = new Tile(mined[row][col], accumulator);
+            }
+        }
     }
 
     public void RevealTouching(int row, int col)
@@ -105,21 +101,6 @@ public class Field implements Iterable<Tile>
             }
         } while (checkAgain);
         return tiles[row][col].Mined && !tiles[row][col].Flagged();
-    }
-
-    public void MoveMine(int row, int col)
-    {
-        if (!tiles[row][col].Mined) return;
-        for (Tile tile : this)
-        {
-            if (!tile.Mined)
-            {
-                tile.Mined = true;
-                tiles[row][col].Mined = false;
-                break;
-            }
-        }
-        AssignTileNumbers();
     }
     
     private Vector<Tile> Surrounding(int row, int col)

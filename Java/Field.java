@@ -4,8 +4,8 @@ import java.util.Iterator;
 public class Field implements Iterable<Tile>
 {
     private final int height, width, mines;
-    private Tile[][] tiles;
-    private Vector<Tile> surrounding;
+    private final Tile[][] tiles;
+    private final Vector<Tile> surrounding;
     
     public Field(int height, int width, int mines)
     {
@@ -18,7 +18,7 @@ public class Field implements Iterable<Tile>
     }
     
     public Tile Get(int row, int col) { return tiles[row][col]; }
-
+    
     private void InitializeTiles()
     {
         boolean[][] mined = new boolean[height][width];
@@ -32,12 +32,13 @@ public class Field implements Iterable<Tile>
                 if (mined[rand / width][rand % width]) alreadyContained = true;
                 else mined[rand / width][rand % width] = true;
             } while (alreadyContained);
-        }        
+        }
+        int accumulator;
         for (int row = 0; row < height; row++)
         {
             for (int col = 0; col < width; col++)
             {
-                int accumulator = 0;
+                accumulator = 0;
                 if (row != 0 && mined[row - 1][col])
                     accumulator++;
                 if (col != 0 && mined[row][col - 1])
@@ -71,11 +72,26 @@ public class Field implements Iterable<Tile>
             if (t.Hidden() && !t.Flagged()) return true;
         return false;
     }
+    
+    public int FlagsTouching(int row, int col)
+    {
+        int accumulator = 0;
+        for (Tile t : Surrounding(row, col))
+            if (t.Flagged()) accumulator++;
+        return accumulator;
+    }
 
     public boolean AllUnminedRevealed()
     {
         for (Tile tile : this)
             if (!tile.Mined && tile.Hidden()) return false;
+        return true;
+    }
+    
+    public boolean AllHidden()
+    {
+        for (Tile tile : this)
+            if (!tile.Hidden()) return false;
         return true;
     }
 
@@ -101,6 +117,54 @@ public class Field implements Iterable<Tile>
             }
         } while (checkAgain);
         return tiles[row][col].Mined && !tiles[row][col].Flagged();
+    }
+    
+    public void MoveMine(int row, int col)
+    {
+        if (!tiles[row][col].Mined) return;
+        for (int r = 0; r < height; r++)
+        {
+            for (int c = 0; c < width; c++)
+            {
+                if (!tiles[r][c].Mined)
+                {
+                    tiles[r][c] = new Tile(true, tiles[r][c].Number);
+                    ReinitializeSurrounding(r, c);
+                    tiles[row][col] = new Tile(false, tiles[row][col].Number);
+                    ReinitializeSurrounding(row, col);
+                    return;
+                }
+            }
+        }
+    }
+    
+    private void ReinitializeSurrounding(int row, int col)
+    {
+        int change = tiles[row][col].Mined ? 1 : -1;
+        if(row != 0 && col != 0)
+            tiles[row - 1][col - 1] = new Tile(tiles[row - 1][col - 1].Mined,
+                tiles[row - 1][col - 1].Number + change);
+        if(row != 0)
+            tiles[row - 1][col] = new Tile(tiles[row - 1][col].Mined,
+                tiles[row - 1][col].Number + change);
+        if(row != 0 && col != width - 1)
+            tiles[row - 1][col + 1] = new Tile(tiles[row - 1][col + 1].Mined,
+                tiles[row - 1][col + 1].Number + change);
+        if(col != 0)
+            tiles[row][col - 1] = new Tile(tiles[row][col - 1].Mined,
+                tiles[row][col - 1].Number + change);
+        if(col != width - 1)
+            tiles[row][col + 1] = new Tile(tiles[row][col + 1].Mined,
+                tiles[row][col + 1].Number + change);
+        if(row != height - 1 && col != 0)
+            tiles[row + 1][col - 1] = new Tile(tiles[row + 1][col - 1].Mined,
+                tiles[row + 1][col - 1].Number + change);
+        if(row != height - 1)
+            tiles[row + 1][col] = new Tile(tiles[row + 1][col].Mined,
+                tiles[row + 1][col].Number + change);
+        if(row != height - 1 && col != width - 1)
+            tiles[row + 1][col + 1] = new Tile(tiles[row + 1][col + 1].Mined,
+                tiles[row + 1][col + 1].Number + change);
     }
     
     private Vector<Tile> Surrounding(int row, int col)

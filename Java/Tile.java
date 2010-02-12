@@ -23,7 +23,7 @@ public class Tile
 
     public void Reveal()
     {
-        if (!Flagged()) revealed = true;
+        if (!flagged) revealed = true;
     }
 
     public void Hide()
@@ -33,7 +33,7 @@ public class Tile
 
     public void Flag()
     {
-        if (Hidden()) flagged = true;
+        if (!revealed) flagged = true;
     }
 
     public void Unflag()

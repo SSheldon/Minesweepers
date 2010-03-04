@@ -1,10 +1,38 @@
 ﻿using System;
+using System.Collections;
 
-public class Field
+public class Field : IEnumerable
 {
     int height, width, mines;
-    public Tile[,] tiles;
-    
+    Tile[,] tiles;
+    public int Height
+    {
+        get { return height; }
+    }
+    public int Width
+    {
+        get { return width; }
+    }
+    public int Mines
+    {
+        get { return mines; }
+    }
+
+    public Tile this[int row, int col]
+    {
+        get { return tiles[row, col]; }
+    }
+
+    public void Flag(int row, int col)
+    {
+        if (tiles[row, col].Hidden) tiles[row, col].Flagged = true;
+    }
+
+    public void Unflag(int row, int col)
+    {
+        tiles[row, col].Flagged = false;
+    }
+
     public Field(int height, int width, int mines)
     {
         this.height = height;
@@ -15,32 +43,41 @@ public class Field
         AssignTileNumbers();
     }
 
-    //randomly generates mines
+    public IEnumerator GetEnumerator()
+    {
+        return new FieldEnumerator(this);
+    }
+
+    /// <summary>
+    /// Randomly generates mines and assigns them to tiles.
+    /// </summary>
     void GenerateMines()
     {
         int[] randomNumbers = new int[mines];
         Random rand = new Random();
-        for (int counter = 0; counter < mines; counter++)
+        for (int i = 0; i < mines; i++)
         {
-            bool alreadyContained = false;
+            bool alreadyContained;
             do
             {
                 alreadyContained = false;
                 int randomNumber = rand.Next(0, height * width - 1);
-                for (int counter2 = 0; counter2 < counter; counter2++)
+                for (int j = 0; j < i; j++)
                 {
-                    if (randomNumbers[counter2] == randomNumber) alreadyContained = true;
+                    if (randomNumbers[j] == randomNumber) alreadyContained = true;
                 }
-                if (!alreadyContained) randomNumbers[counter] = randomNumber;
+                if (!alreadyContained) randomNumbers[i] = randomNumber;
             } while (alreadyContained);
         }
-        for (int counter = 0; counter < mines; counter++)
+        foreach (int i in randomNumbers)
         {
-            tiles[randomNumbers[counter] / width, randomNumbers[counter] % width].Mined = true;
+            tiles[i / width, i % width].Mined = true;
         }
     }
 
-    //calculates tile numbers
+    /// <summary>
+    /// Calculates tile numbers and assigns them.
+    /// </summary>
     void AssignTileNumbers()
     {
         for (int row = 0; row < height; row++)
@@ -55,85 +92,35 @@ public class Field
     int TileNumber(int row, int col)
     {
         int accumulator = 0;
-        if (tiles[row, col].Mined == true)
+        for (AdjLoc l = new AdjLoc(this, row, col); l.Valid; l++)
         {
-            accumulator = 9;
-        }
-        else
-        {
-            if (row != 0)
-            {
-                if (tiles[(row - 1), col].Mined)
-                {
-                    accumulator++;
-                }
-            }
-            if (col != 0)
-            {
-                if (tiles[row, (col - 1)].Mined)
-                {
-                    accumulator++;
-                }
-            }
-            if (row != 0 && col != 0)
-            {
-                if (tiles[(row - 1), (col - 1)].Mined)
-                {
-                    accumulator++;
-                }
-            }
-            if (col != width - 1)
-            {
-                if (tiles[row, (col + 1)].Mined)
-                {
-                    accumulator++;
-                }
-            }
-            if (row != 0 && col != width - 1)
-            {
-                if (tiles[(row - 1), (col + 1)].Mined)
-                {
-                    accumulator++;
-                }
-            }
-            if (row != height - 1)
-            {
-                if (tiles[(row + 1), col].Mined)
-                {
-                    accumulator++;
-                }
-            }
-            if (row != height - 1 && col != 0)
-            {
-                if (tiles[(row + 1), (col - 1)].Mined)
-                {
-                    accumulator++;
-                }
-            }
-            if (row != height - 1 && col != width - 1)
-            {
-                if (tiles[(row + 1), (col + 1)].Mined)
-                {
-                    accumulator++;
-                }
-            }
+            if (tiles[l.Row, l.Col].Mined) accumulator++;
         }
         return accumulator;
     }
 
     /// <summary>
+    /// Returns a value indicating the number of flagged tiles the specified tile is touching.
+    /// </summary>
+    public int FlagsTouching(int row, int col)
+    {
+        int surroundingFlags = 0;
+        for (AdjLoc l = new AdjLoc(this, row, col); l.Valid; l++)
+        {
+            if (tiles[l.Row, l.Col].Flagged) surroundingFlags++;
+        }
+        return surroundingFlags;
+    }
+
+    /// <summary>
     /// Reveals all tiles touching the specified tile.
     /// </summary>
-    public void RevealTouching(int row, int col)
+    void RevealTouching(int row, int col)
     {
-        if (row != 0) tiles[(row - 1), col].Reveal();
-        if (col != 0) tiles[row, (col - 1)].Reveal();
-        if (row != 0 && col != 0) tiles[(row - 1), (col - 1)].Reveal();
-        if (col != width - 1) tiles[row, (col + 1)].Reveal();
-        if (row != 0 && col != width - 1) tiles[(row - 1), (col + 1)].Reveal();
-        if (row != height - 1) tiles[(row + 1), col].Reveal();
-        if (row != height - 1 && col != 0) tiles[(row + 1), (col - 1)].Reveal();
-        if (row != height - 1 && col != width - 1) tiles[(row + 1), (col + 1)].Reveal();
+        for (AdjLoc l = new AdjLoc(this, row, col); l.Valid; l++)
+        {
+            if (!tiles[l.Row, l.Col].Flagged) tiles[l.Row, l.Col].Hidden = false;
+        }
     }
 
     /// <summary>
@@ -141,24 +128,11 @@ public class Field
     /// </summary>
     public bool TouchingHiddenTile(int row, int col)
     {
-        bool anyHidden = false;
-        if (!(row == 0)) 
-            if (tiles[(row - 1), col].Hidden == true & tiles[(row - 1), col].Flagged == false) anyHidden = true;
-        if (!(col == 0)) 
-            if (tiles[row, (col - 1)].Hidden == true & tiles[row, (col - 1)].Flagged == false) anyHidden = true;
-        if (!(row == 0) & !(col == 0)) 
-            if (tiles[(row - 1), (col - 1)].Hidden == true & tiles[(row - 1), (col - 1)].Flagged == false) anyHidden = true;
-        if (!(col == width - 1)) 
-            if (tiles[row, (col + 1)].Hidden == true & tiles[row, (col + 1)].Flagged == false) anyHidden = true;
-        if (!(row == 0) & !(col == width - 1)) 
-            if (tiles[(row - 1), (col + 1)].Hidden == true & tiles[(row - 1), (col + 1)].Flagged == false) anyHidden = true;
-        if (!(row == height - 1)) 
-            if (tiles[(row + 1), col].Hidden == true & tiles[(row + 1), col].Flagged == false) anyHidden = true;
-        if (!(row == height - 1) & !(col == 0)) 
-            if (tiles[(row + 1), (col - 1)].Hidden == true & tiles[(row + 1), (col - 1)].Flagged == false) anyHidden = true;
-        if (!(row == height - 1) & !(col == width - 1)) 
-            if (tiles[(row + 1), (col + 1)].Hidden == true & tiles[(row + 1), (col + 1)].Flagged == false) anyHidden = true;
-        return anyHidden;
+        for (AdjLoc l = new AdjLoc(this, row, col); l.Valid; l++)
+        {
+            if (tiles[l.Row, l.Col].Hidden && !tiles[l.Row, l.Col].Flagged) return true;
+        }
+        return false;
     }
 
     /// <summary>
@@ -168,15 +142,11 @@ public class Field
     {
         get
         {
-            bool moreTilesToReveal = false;
-            for (int row = 0; row < height; row++)
+            foreach (Tile tile in this)
             {
-                for (int col = 0; col < width; col++)
-                {
-                    if (tiles[row, col].Mined == false & tiles[row, col].Hidden == true) moreTilesToReveal = true;
-                }
+                if (!tile.Mined && tile.Hidden) return false;
             }
-            return !moreTilesToReveal;
+            return true;
         }
     }
 
@@ -185,27 +155,39 @@ public class Field
     /// </summary>
     public bool Click(int row, int col)
     {
-        tiles[row, col].Reveal();
-        bool checkAgain;
+        if (!tiles[row, col].Flagged) tiles[row, col].Hidden = false;
         //check to see if there are zero tiles touching hidden tiles
+        bool checkAgain;
         do
         {
             checkAgain = false;
-            for (int rowCounter = 0; rowCounter < height; rowCounter++)
+            for (int r = 0; r < height; r++)
             {
-                for (int colCounter = 0; colCounter < width; colCounter++)
+                for (int c = 0; c < width; c++)
                 {
-                    if (!tiles[rowCounter, colCounter].Hidden && !tiles[rowCounter, colCounter].Mined &&
-                        tiles[rowCounter, colCounter].Number == 0 && TouchingHiddenTile(rowCounter, colCounter))
+                    if (!tiles[r, c].Hidden && !tiles[r, c].Mined &&
+                        tiles[r, c].Number == 0 && TouchingHiddenTile(r, c))
                     {
-                        RevealTouching(rowCounter, colCounter);
+                        RevealTouching(r, c);
                         checkAgain = true;
                     }
                 }
             }
-        } while (checkAgain == true);
-        if (tiles[row, col].Mined && !tiles[row, col].Flagged) return true;
-        else return false;
+        } while (checkAgain);
+         return tiles[row, col].Mined && !tiles[row, col].Flagged;
+    }
+
+    /// <summary>
+    /// Reveals the tiles surrounding the specified tile and returns a value indicating if any were mined and unflagged.
+    /// </summary>
+    public bool ClickSurrounding(int row, int col)
+    {
+        bool mineClicked = false;
+        for (AdjLoc l = new AdjLoc(this, row, col); l.Valid; l++)
+        {
+            if (Click(l.Row, l.Col)) mineClicked = true;
+        }
+        return mineClicked;
     }
 
     /// <summary>
@@ -213,22 +195,183 @@ public class Field
     /// </summary>
     public void MoveMine(int row, int col)
     {
-        if (tiles[row, col].Mined)
+        if (!tiles[row, col].Mined) return;
+        for (int r = 0; r < height; r++)
         {
-            for (int rowCounter = 0; rowCounter < height; rowCounter++)
+            for (int c = 0; c < width; c++)
             {
-                for (int colCounter = 0; colCounter < width; colCounter++)
+                if (!tiles[r, c].Mined)
                 {
-                    if (!tiles[rowCounter, colCounter].Mined)
+                    tiles[r, c].Mined = true;
+                    for (AdjLoc l = new AdjLoc(this, r, c); l.Valid; l++)
                     {
-                        tiles[rowCounter, colCounter].Mined = true;
-                        tiles[row, col].Mined = false;
-                        break;
+                        tiles[l.Row, l.Col].Number++;
                     }
+                    tiles[row, col].Mined = false;
+                    for (AdjLoc l = new AdjLoc(this, row, col); l.Valid; l++)
+                    {
+                        tiles[l.Row, l.Col].Number--;
+                    }
+                    return;
                 }
-                if (!tiles[row, col].Mined) break;
             }
-            AssignTileNumbers();
         }
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether all the tiles are hidden.
+    /// </summary>
+    public bool AllHidden
+    {
+        get
+        {
+            foreach (Tile tile in this)
+            {
+                if (!tile.Hidden) return false;
+            }
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Represents a location on the field adjacent to the specified tile.
+    /// </summary>
+    private struct AdjLoc
+    {
+        private int r, c, i;
+        private int height, width;
+
+        public AdjLoc(Field field, int row, int col)
+        {
+            height = field.Height;
+            width = field.Width;
+            r = row;
+            c = col;
+            i = -1;
+            this++;
+        }
+
+        /// <summary>
+        /// Gets the row number of the adjacent location.
+        /// </summary>
+        public int Row
+        {
+            get
+            {
+                switch (i)
+                {
+                    case 0:
+                    case 1:
+                    case 2:
+                        return r - 1;
+                    case 3:
+                    case 4:
+                    default:
+                        return r;
+                    case 5:                        
+                    case 6:
+                    case 7:
+                        return r + 1;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the column number of the adjacent location.
+        /// </summary>
+        public int Col
+        {
+            get
+            {
+                switch (i)
+                {
+                    case 0:
+                    case 3:
+                    case 5:
+                        return c - 1;
+                    case 1:
+                    case 6:
+                    default:
+                        return c;
+                    case 2:
+                    case 4:
+                    case 7:
+                        return c + 1;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating if this is a valid location. 
+        /// If it isn't, there are no more locations adjacent to the specified tile.
+        /// </summary>
+        public bool Valid
+        {
+            get { return i < 8 && i >= 0; }
+        }
+
+        public static AdjLoc operator ++(AdjLoc l)
+        {
+            for (l.i++; !l.PositionExists && l.i < 8; l.i++) ;
+            return l;
+        }
+
+        private bool PositionExists
+        {
+            get
+            {
+                switch (i)
+                {
+                    case 0:
+                        return r != 0 && c != 0;
+                    case 1:
+                        return r != 0;
+                    case 2:
+                        return r != 0 && c != width - 1;
+                    case 3:
+                        return c != 0;
+                    case 4:
+                        return c != width - 1;
+                    case 5:
+                        return r != height - 1 && c != 0;
+                    case 6:
+                        return r != height - 1;
+                    case 7:
+                        return r != height - 1 && c != width - 1;
+                    default:
+                        return false;
+                }
+            }
+        }
+    }
+}
+
+public class FieldEnumerator : IEnumerator
+{
+    int position = -1;
+    Field field;
+
+    public FieldEnumerator(Field field)
+    {
+        this.field = field;
+    }
+
+    public object Current
+    {
+        get
+        {
+            return field[position / field.Width, position % field.Width];
+        }
+    }
+
+    public bool MoveNext()
+    {
+        position++;
+        return (position < field.Height * field.Width);
+    }
+
+    public void Reset()
+    {
+        position = -1;
     }
 }

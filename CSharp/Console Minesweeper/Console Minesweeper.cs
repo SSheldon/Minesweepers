@@ -24,9 +24,9 @@ public class Minesweeper
                         {
                             for (int col = 0; col < 9; col++)
                             {
-                                if (x.tiles[row, col].Mined == true)
+                                if (x[row, col].Mined == true)
                                 {
-                                    x.tiles[row, col].Reveal();
+                                    x.Click(row, col);
                                 }
                             }
                         }
@@ -43,9 +43,9 @@ public class Minesweeper
                             {
                                 for (int col = 0; col < 9; col++)
                                 {
-                                    if (x.tiles[row, col].Mined == true)
+                                    if (x[row, col].Mined == true)
                                     {
-                                        x.tiles[row, col].Reveal();
+                                        x.Click(row, col);
                                     }
                                 }
                             }
@@ -63,8 +63,8 @@ public class Minesweeper
                 }
                 else //player is flagging a tile
                 {
-                    if (!(x.tiles[rowPick, colPick].Flagged)) x.tiles[rowPick, colPick].Flag();
-                    else x.tiles[rowPick, colPick].Unflag();
+                    if (!(x[rowPick, colPick].Flagged)) x.Flag(rowPick, colPick);
+                    else x.Unflag(rowPick, colPick);
                     DisplayField(x);
                     stillPlaying = true;
                 }
@@ -80,23 +80,23 @@ public class Minesweeper
         Console.WriteLine("");
         Console.WriteLine("  1 2 3 4 5 6 7 8 9 \n" +
                           " ┌─┬─┬─┬─┬─┬─┬─┬─┬─┐\n" +
-                          "A│" + FieldValue(field.tiles[0, 0]) + "│" + FieldValue(field.tiles[0, 1]) + "│" + FieldValue(field.tiles[0, 2]) + "│" + FieldValue(field.tiles[0, 3]) + "│" + FieldValue(field.tiles[0, 4]) + "│" + FieldValue(field.tiles[0, 5]) + "│" + FieldValue(field.tiles[0, 6]) + "│" + FieldValue(field.tiles[0, 7]) + "│" + FieldValue(field.tiles[0, 8]) + "│A\n" +
+                          "A│" + FieldValue(field[0, 0]) + "│" + FieldValue(field[0, 1]) + "│" + FieldValue(field[0, 2]) + "│" + FieldValue(field[0, 3]) + "│" + FieldValue(field[0, 4]) + "│" + FieldValue(field[0, 5]) + "│" + FieldValue(field[0, 6]) + "│" + FieldValue(field[0, 7]) + "│" + FieldValue(field[0, 8]) + "│A\n" +
                           " ├─┼─┼─┼─┼─┼─┼─┼─┼─┤\n" +
-                          "B│" + FieldValue(field.tiles[1, 0]) + "│" + FieldValue(field.tiles[1, 1]) + "│" + FieldValue(field.tiles[1, 2]) + "│" + FieldValue(field.tiles[1, 3]) + "│" + FieldValue(field.tiles[1, 4]) + "│" + FieldValue(field.tiles[1, 5]) + "│" + FieldValue(field.tiles[1, 6]) + "│" + FieldValue(field.tiles[1, 7]) + "│" + FieldValue(field.tiles[1, 8]) + "│B\n" +
+                          "B│" + FieldValue(field[1, 0]) + "│" + FieldValue(field[1, 1]) + "│" + FieldValue(field[1, 2]) + "│" + FieldValue(field[1, 3]) + "│" + FieldValue(field[1, 4]) + "│" + FieldValue(field[1, 5]) + "│" + FieldValue(field[1, 6]) + "│" + FieldValue(field[1, 7]) + "│" + FieldValue(field[1, 8]) + "│B\n" +
                           " ├─┼─┼─┼─┼─┼─┼─┼─┼─┤\n" +
-                          "C│" + FieldValue(field.tiles[2, 0]) + "│" + FieldValue(field.tiles[2, 1]) + "│" + FieldValue(field.tiles[2, 2]) + "│" + FieldValue(field.tiles[2, 3]) + "│" + FieldValue(field.tiles[2, 4]) + "│" + FieldValue(field.tiles[2, 5]) + "│" + FieldValue(field.tiles[2, 6]) + "│" + FieldValue(field.tiles[2, 7]) + "│" + FieldValue(field.tiles[2, 8]) + "│C\n" +
+                          "C│" + FieldValue(field[2, 0]) + "│" + FieldValue(field[2, 1]) + "│" + FieldValue(field[2, 2]) + "│" + FieldValue(field[2, 3]) + "│" + FieldValue(field[2, 4]) + "│" + FieldValue(field[2, 5]) + "│" + FieldValue(field[2, 6]) + "│" + FieldValue(field[2, 7]) + "│" + FieldValue(field[2, 8]) + "│C\n" +
                           " ├─┼─┼─┼─┼─┼─┼─┼─┼─┤\n" +
-                          "D│" + FieldValue(field.tiles[3, 0]) + "│" + FieldValue(field.tiles[3, 1]) + "│" + FieldValue(field.tiles[3, 2]) + "│" + FieldValue(field.tiles[3, 3]) + "│" + FieldValue(field.tiles[3, 4]) + "│" + FieldValue(field.tiles[3, 5]) + "│" + FieldValue(field.tiles[3, 6]) + "│" + FieldValue(field.tiles[3, 7]) + "│" + FieldValue(field.tiles[3, 8]) + "│D\n" +
+                          "D│" + FieldValue(field[3, 0]) + "│" + FieldValue(field[3, 1]) + "│" + FieldValue(field[3, 2]) + "│" + FieldValue(field[3, 3]) + "│" + FieldValue(field[3, 4]) + "│" + FieldValue(field[3, 5]) + "│" + FieldValue(field[3, 6]) + "│" + FieldValue(field[3, 7]) + "│" + FieldValue(field[3, 8]) + "│D\n" +
                           " ├─┼─┼─┼─┼─┼─┼─┼─┼─┤\n" +
-                          "E│" + FieldValue(field.tiles[4, 0]) + "│" + FieldValue(field.tiles[4, 1]) + "│" + FieldValue(field.tiles[4, 2]) + "│" + FieldValue(field.tiles[4, 3]) + "│" + FieldValue(field.tiles[4, 4]) + "│" + FieldValue(field.tiles[4, 5]) + "│" + FieldValue(field.tiles[4, 6]) + "│" + FieldValue(field.tiles[4, 7]) + "│" + FieldValue(field.tiles[4, 8]) + "│E\n" +
+                          "E│" + FieldValue(field[4, 0]) + "│" + FieldValue(field[4, 1]) + "│" + FieldValue(field[4, 2]) + "│" + FieldValue(field[4, 3]) + "│" + FieldValue(field[4, 4]) + "│" + FieldValue(field[4, 5]) + "│" + FieldValue(field[4, 6]) + "│" + FieldValue(field[4, 7]) + "│" + FieldValue(field[4, 8]) + "│E\n" +
                           " ├─┼─┼─┼─┼─┼─┼─┼─┼─┤\n" +
-                          "F│" + FieldValue(field.tiles[5, 0]) + "│" + FieldValue(field.tiles[5, 1]) + "│" + FieldValue(field.tiles[5, 2]) + "│" + FieldValue(field.tiles[5, 3]) + "│" + FieldValue(field.tiles[5, 4]) + "│" + FieldValue(field.tiles[5, 5]) + "│" + FieldValue(field.tiles[5, 6]) + "│" + FieldValue(field.tiles[5, 7]) + "│" + FieldValue(field.tiles[5, 8]) + "│F\n" +
+                          "F│" + FieldValue(field[5, 0]) + "│" + FieldValue(field[5, 1]) + "│" + FieldValue(field[5, 2]) + "│" + FieldValue(field[5, 3]) + "│" + FieldValue(field[5, 4]) + "│" + FieldValue(field[5, 5]) + "│" + FieldValue(field[5, 6]) + "│" + FieldValue(field[5, 7]) + "│" + FieldValue(field[5, 8]) + "│F\n" +
                           " ├─┼─┼─┼─┼─┼─┼─┼─┼─┤\n" +
-                          "G│" + FieldValue(field.tiles[6, 0]) + "│" + FieldValue(field.tiles[6, 1]) + "│" + FieldValue(field.tiles[6, 2]) + "│" + FieldValue(field.tiles[6, 3]) + "│" + FieldValue(field.tiles[6, 4]) + "│" + FieldValue(field.tiles[6, 5]) + "│" + FieldValue(field.tiles[6, 6]) + "│" + FieldValue(field.tiles[6, 7]) + "│" + FieldValue(field.tiles[6, 8]) + "│G\n" +
+                          "G│" + FieldValue(field[6, 0]) + "│" + FieldValue(field[6, 1]) + "│" + FieldValue(field[6, 2]) + "│" + FieldValue(field[6, 3]) + "│" + FieldValue(field[6, 4]) + "│" + FieldValue(field[6, 5]) + "│" + FieldValue(field[6, 6]) + "│" + FieldValue(field[6, 7]) + "│" + FieldValue(field[6, 8]) + "│G\n" +
                           " ├─┼─┼─┼─┼─┼─┼─┼─┼─┤\n" +
-                          "H│" + FieldValue(field.tiles[7, 0]) + "│" + FieldValue(field.tiles[7, 1]) + "│" + FieldValue(field.tiles[7, 2]) + "│" + FieldValue(field.tiles[7, 3]) + "│" + FieldValue(field.tiles[7, 4]) + "│" + FieldValue(field.tiles[7, 5]) + "│" + FieldValue(field.tiles[7, 6]) + "│" + FieldValue(field.tiles[7, 7]) + "│" + FieldValue(field.tiles[7, 8]) + "│H\n" +
+                          "H│" + FieldValue(field[7, 0]) + "│" + FieldValue(field[7, 1]) + "│" + FieldValue(field[7, 2]) + "│" + FieldValue(field[7, 3]) + "│" + FieldValue(field[7, 4]) + "│" + FieldValue(field[7, 5]) + "│" + FieldValue(field[7, 6]) + "│" + FieldValue(field[7, 7]) + "│" + FieldValue(field[7, 8]) + "│H\n" +
                           " ├─┼─┼─┼─┼─┼─┼─┼─┼─┤\n" +
-                          "I│" + FieldValue(field.tiles[8, 0]) + "│" + FieldValue(field.tiles[8, 1]) + "│" + FieldValue(field.tiles[8, 2]) + "│" + FieldValue(field.tiles[8, 3]) + "│" + FieldValue(field.tiles[8, 4]) + "│" + FieldValue(field.tiles[8, 5]) + "│" + FieldValue(field.tiles[8, 6]) + "│" + FieldValue(field.tiles[8, 7]) + "│" + FieldValue(field.tiles[8, 8]) + "│I\n" +
+                          "I│" + FieldValue(field[8, 0]) + "│" + FieldValue(field[8, 1]) + "│" + FieldValue(field[8, 2]) + "│" + FieldValue(field[8, 3]) + "│" + FieldValue(field[8, 4]) + "│" + FieldValue(field[8, 5]) + "│" + FieldValue(field[8, 6]) + "│" + FieldValue(field[8, 7]) + "│" + FieldValue(field[8, 8]) + "│I\n" +
                           " └─┴─┴─┴─┴─┴─┴─┴─┴─┘\n" +
                           "  1 2 3 4 5 6 7 8 9 \n");
     }

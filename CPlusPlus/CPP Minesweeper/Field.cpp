@@ -1,5 +1,5 @@
 #include <cstdlib>
-#include <time.h>
+#include <ctime>
 
 struct Tile
 {
@@ -25,18 +25,15 @@ struct Tile
 class Field
 {
 private:
-	int height;
-	int width;
-	int mines;
-	Tile *tiles;
+	const int height;
+	const int width;
+	const int mines;
+	Tile *const tiles;
 
 public:
 	Field(int height, int width, int mines)
+		: height(height), width(width), mines(mines), tiles(new Tile[height * width])
 	{
-		this->height = height;
-		this->width = width;
-		this->mines = mines;
-		tiles = new Tile[height * width];
 		GenerateMines();
 		AssignTileNumbers();
 	}
@@ -44,7 +41,7 @@ public:
 	{
 		delete[] tiles;
 	}
-	Tile Get(int row, int col)
+	Tile Get(int row, int col) const
 	{
 		return tiles[row * width + col];
 	}
@@ -52,7 +49,7 @@ public:
 private:
 	void GenerateMines()
 	{
-		int *randomNumbers = new int[mines];
+		int *const randomNumbers = new int[mines];
 		srand((unsigned)time(NULL));
 		for (int i = 0; i < mines; i++)
 		{
@@ -131,7 +128,7 @@ public:
 		} while (checkAgain);
 		return Get(row, col).mined && !Get(row, col).flagged;
 	}
-	bool TouchingHiddenTile(int row, int col)
+	bool TouchingHiddenTile(int row, int col) const
 	{
 		bool anyHidden = false;
 		if (row != 0) 
@@ -171,7 +168,7 @@ public:
 		if (row != height - 1 && col != width - 1)
 			Get(row + 1, col + 1).Reveal();
 	}
-	bool AllUnminedRevealed()
+	bool AllUnminedRevealed() const
 	{
 		for (int row = 0; row < height; row++)
 		{

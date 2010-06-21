@@ -5,28 +5,24 @@ public class Minesweeper
     public static void main(String[] args)
     {
         Minesweeper x = new Minesweeper();
+        x.RunGame();
     }
     
     private Field field;
-    //StopWatch s;
-    private Scanner scanner;
+    StopWatch s = new StopWatch();
+    private Scanner scanner = new Scanner(System.in);
     private final int HEIGHT = 9, WIDTH = 9, MINES = 10;
-
-    public Minesweeper()
+    
+    public void RunGame()
     {
-        //s = new StopWatch();
-        scanner = new Scanner(System.in);
-        
-        do
-        {
-            field = new Field(HEIGHT, WIDTH, MINES);
-            //s.Start();
-            DisplayField();
-            while (HandleInput());
-            System.out.println("Thanks for playing!");
-            System.out.print("Play again? (Press enter to continue) ");
-            scanner.nextLine();
-        } while (true);
+    	field = new Field(HEIGHT, WIDTH, MINES);
+        s.Start();
+        DisplayField();
+        while (HandleInput());
+        System.out.println("Thanks for playing!");
+        System.out.print("Play again? (Press enter to continue) ");
+        scanner.nextLine();
+        RunGame();
     }
 
     private void DisplayField()
@@ -68,12 +64,12 @@ public class Minesweeper
             {
                 if (field.AllUnminedRevealed())
                 {
-                    //s.Stop();
+                    s.Stop();
                     for (Tile tile : field)
                         if (tile.Mined) tile.Reveal();
                     DisplayField();
                     System.out.println("Congratulations! You win!");
-                    //Console.WriteLine("You found all the mines in " + Convert.ToInt32(s.GetElapsedTimeSecs()) + " seconds!");
+                    System.out.println("You found all the mines in " + s.GetElapsedTime() / 1000 + " seconds!");
                     return false;
                 }
                 else
